@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="./docs/assets/banner-hero.png" alt="F.R.I.D.A.Y. Intelligence System" width="100%" />
-
 # F.R.I.D.A.Y.
 
 **Your Personal Intelligence Operating System**
