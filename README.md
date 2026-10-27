@@ -1,68 +1,51 @@
 <div align="center">
 
-<img src="./docs/assets/banner.png" alt="F.R.I.D.A.Y. Operating System Banner" width="100%" />
+<img src="./docs/assets/banner-hero.png" alt="F.R.I.D.A.Y. Intelligence System" width="100%" />
 
-# F . R . I . D . A . Y .
+# F.R.I.D.A.Y.
 
-**Next-Generation Local-First Personal AI Assistant & World Intelligence Interface**
-
-[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![React 18](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Three.js](https://img.shields.io/badge/Three.js-WebGL-000000?style=for-the-badge&logo=threedotjs&logoColor=white)](https://threejs.org/)
-[![Ollama](https://img.shields.io/badge/Ollama-Qwen_2.5_7B-1E1E2E?style=for-the-badge&logo=ollama&logoColor=white)](https://ollama.com/)
-[![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-Nominatim_%26_Overpass-7EBC6F?style=for-the-badge&logo=openstreetmap&logoColor=white)](https://www.openstreetmap.org/)
-[![Windows 11](https://img.shields.io/badge/Platform-Windows_11_x64-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://www.microsoft.com/windows)
-[![Security](https://img.shields.io/badge/Security-Capability_Broker-10B981?style=for-the-badge&logo=shield&logoColor=white)](#security--privacy-architecture)
-[![License: MIT](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](https://opensource.org/licenses/MIT)
+**Your Personal Intelligence Operating System**
 
 <p align="center">
-  <em>F.R.I.D.A.Y. (Female Replacement Intelligent Digital Assistant Youth) is a local-first, privacy-governed personal AI operating system inspired by the Marvel universe. Built with an application-enforced Capability Broker, an interactive 3D World Intelligence globe, continuous Windows location awareness, and zero-paid-API OpenStreetMap spatial intelligence, F.R.I.D.A.Y. pairs deterministic OS execution with local neural reasoning.</em>
+  A local-first, privacy-governed personal AI assistant that pairs deterministic OS execution with local neural reasoning. Featuring an interactive 3D World Intelligence globe, continuous Windows geolocation, and zero-paid-API OpenStreetMap spatial awareness, F.R.I.D.A.Y. delivers an auditable personal command center directly on your hardware.
 </p>
+
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React 18](https://img.shields.io/badge/React-18.3-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Three.js](https://img.shields.io/badge/Three.js-WebGL-000000?style=flat&logo=threedotjs&logoColor=white)](https://threejs.org/)
+[![Ollama](https://img.shields.io/badge/Ollama-Qwen_2.5_7B-1E1E2E?style=flat&logo=ollama&logoColor=white)](https://ollama.com/)
+[![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-Nominatim_%26_Overpass-7EBC6F?style=flat&logo=openstreetmap&logoColor=white)](https://www.openstreetmap.org/)
+[![Windows 11](https://img.shields.io/badge/Platform-Windows_11_x64-0078D4?style=flat&logo=windows11&logoColor=white)](https://www.microsoft.com/windows)
+[![Security](https://img.shields.io/badge/Security-Capability_Broker-10B981?style=flat&logo=shield&logoColor=white)](#security--privacy-architecture)
+[![License: MIT](https://img.shields.io/badge/License-MIT-F59E0B?style=flat)](https://opensource.org/licenses/MIT)
+
+<br/>
+
+**[Overview](#overview)** &nbsp;•&nbsp; **[Features](#key-features)** &nbsp;•&nbsp; **[Architecture](#system-architecture)** &nbsp;•&nbsp; **[Tech Stack](#technology-stack)** &nbsp;•&nbsp; **[Quickstart](#installation--setup)** &nbsp;•&nbsp; **[Configuration](#configuration--environment-variables)** &nbsp;•&nbsp; **[Security](#security--privacy-architecture)** &nbsp;•&nbsp; **[Roadmap](#roadmap)**
 
 </div>
 
 ---
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Vision & Design Philosophy](#vision--design-philosophy)
-- [Key Features](#key-features)
-- [System Architecture](#system-architecture)
-- [Technology Stack](#technology-stack)
-- [How It Works](#how-it-works)
-- [Prerequisites](#prerequisites)
-- [Installation & Setup](#installation--setup)
-- [Configuration & Environment Variables](#configuration--environment-variables)
-- [Running the Application](#running-the-application)
-- [Running the Test Suite](#running-the-test-suite)
-- [Security & Privacy Architecture](#security--privacy-architecture)
-- [Known Limitations](#known-limitations)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License & Acknowledgements](#license--acknowledgements)
-
----
-
 ## Overview
 
-Most modern AI assistants operate as opaque cloud wrappers that blindly execute arbitrary instructions or summarize conversation streams. **F.R.I.D.A.Y.** rethinks desktop AI from first principles as an auditable, high-reliability personal intelligence platform.
+Most desktop AI assistants operate as opaque cloud wrappers that execute arbitrary code or relay chat transcripts to third-party endpoints. **F.R.I.D.A.Y.** rethinks desktop AI from first principles as an auditable, high-reliability personal intelligence platform.
 
 F.R.I.D.A.Y. decouples **probabilistic neural reasoning** from **deterministic execution authority**:
-1. **The Neural Model Proposes:** A local large language model (Qwen 2.5 7B via Ollama) processes user requests and constructs tool execution proposals.
-2. **The Capability Broker Decides:** An independent, hardcoded security policy broker inspects every proposed action against fixed schema definitions, session permission sets, and strict filesystem confinement before any operating system action can execute.
-3. **The Spatial Engine Grounds:** An interactive 3D WebGL globe contextualizes global and local intelligence, pairing live Windows hardware geolocation with community-driven OpenStreetMap points of interest.
+1. **The Neural Model Proposes:** A local large language model (`qwen2.5:7b` hosted on Ollama) parses user intent and constructs structured tool proposals.
+2. **The Capability Broker Decides:** An independent, hardcoded security policy broker evaluates every proposed action against schema definitions, session permissions, and strict filesystem boundaries before any operating system action can execute.
+3. **The Spatial Engine Grounds:** An interactive 3D WebGL globe contextualizes global intelligence, pairing native Windows hardware geolocation with community-driven OpenStreetMap spatial discovery.
 
-The entire core runs exclusively on localhost (`127.0.0.1`), preserving absolute data sovereignty with zero telemetry leakage.
+The entire core runs strictly on localhost (`127.0.0.1`), preserving absolute data sovereignty with zero telemetry leakage.
 
 ---
 
 ## Vision & Design Philosophy
 
 - **Local-First by Default:** All core intelligence runs on your hardware. Conversation history, device telemetry, and filesystem access never leave your machine.
-- **Zero Fabrication Policy:** When a service, coordinate fix, weather station, or external provider is unconfigured, offline, or unavailable, F.R.I.D.A.Y. reports its exact status honestly (`no_fix`, `provider_not_configured`, `rate_limited`, `timeout`) rather than hallucinating places, ratings, or readings.
+- **Zero Fabrication Policy:** When a service, coordinate fix, weather station, or external provider is unconfigured, offline, or unavailable, F.R.I.D.A.Y. reports its exact status honestly (`no_fix`, `provider_not_configured`, `rate_limited`, `timeout`) rather than hallucinating places, ratings, or telemetry.
 - **Minimalist Cinematic Aesthetics:** Inspired by the restraint of aerospace telemetry HUDs and cinematic science-fiction interfaces. Deep space obsidian canvas, electric cyan holographic energy orb, midnight navy control panels, and violet orbital markers.
 - **Shared Infrastructure Stewardship:** Open-source community APIs (such as OpenStreetMap Nominatim and Overpass) are shared public goods. F.R.I.D.A.Y. honors upstream usage policies with strict client-side rate limiting (<= 1 request/sec), in-flight deduplication, bounded TTL caching, and automatic fallback endpoints.
 
