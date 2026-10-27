@@ -66,3 +66,43 @@ def test_allow_valid_request(test_setup):
     verdict = broker.evaluate(proposal)
     assert verdict.allowed is True
     assert "Authorized by Capability Broker" in verdict.reason
+
+
+def test_reject_wrong_argument_type(test_setup):
+    broker, _, _ = test_setup
+    # Action expected string, pass int
+    proposal = ToolCallProposal(tool_name="control_media", arguments={"action": 12345})
+    verdict = broker.evaluate(proposal)
+    assert verdict.allowed is False
+    assert "expected string" in verdict.reason.lower() or "failed schema validation" in verdict.reason.lower()
+
+
+def test_reject_extra_unexpected_arguments(test_setup):
+    broker, _, _ = test_setup
+    # additionalProperties is False
+    proposal = ToolCallProposal(tool_name="get_local_time", arguments={"extra_param": "forbidden"})
+    verdict = broker.evaluate(proposal)
+    assert verdict.allowed is False
+    assert "unexpected parameter" in verdict.reason.lower()
+
+
+def test_unauthorized_request_prevents_os_action(test_setup, monkeypatch):
+    broker, registry, _ = test_setup
+    tool = registry.get("control_media")
+
+    called = False
+    def fake_win32_key(vk):
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr(tool, "_send_win32_media_key", fake_win32_key)
+
+    # Media control is disabled by default in test_setup
+    proposal = ToolCallProposal(tool_name="control_media", arguments={"action": "play"})
+    verdict = broker.evaluate(proposal)
+
+    # Broker rejects
+    assert verdict.allowed is False
+    # Verify the OS function was never touched
+    assert called is False
+

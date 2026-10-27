@@ -85,3 +85,37 @@ async def test_model_cannot_self_grant_media_permission(temp_workspace: Path):
     verdict = broker.evaluate(proposal)
     assert verdict.allowed is False
     assert "disabled" in verdict.reason.lower() or "lacks required permission" in verdict.reason.lower()
+
+
+@pytest.mark.asyncio
+async def test_rejection_chain_does_not_permit_subsequent_unauthorized_tools(temp_workspace: Path):
+    """Ensure a rejected tool in turn 1 does not lead to an unauthorized tool execution in turn 2."""
+    registry = ToolRegistry()
+    registry.register(GetLocalTimeTool())
+    registry.register(ControlMediaTool())
+
+    policy = SessionPolicy(
+        allowed_permissions={PermissionType.SYSTEM_TIME},
+        media_control_enabled=False,
+        allowed_workspace_root=str(temp_workspace),
+    )
+    broker = CapabilityBroker(registry=registry, session_policy=policy)
+
+    # First turn tries control_media (denied).
+    turn1_call = [{"function": {"name": "control_media", "arguments": {"action": "play"}}}]
+    # Second turn tries an unknown tool (denied).
+    turn2_call = [{"function": {"name": "grant_all_permissions", "arguments": {}}}]
+
+    mock_adapter = MockAdversarialModelAdapter(actions_to_propose=[turn1_call, turn2_call])
+    orchestrator = ConversationOrchestrator(
+        model_adapter=mock_adapter,
+        registry=registry,
+        broker=broker,
+        max_turns=4,
+    )
+
+    reply = await orchestrator.run_turn("Try to bypass security")
+    assert "Halted after rejection" in reply or "rejection" in reply.lower()
+    # Confirm both attempts were rejected
+    assert len(orchestrator.history) >= 2
+

@@ -51,6 +51,9 @@ class ListWorkspaceTool(BaseTool):
         if "\0" in subpath:
             raise PermissionError("Path contains illegal null bytes.")
 
+        if ":" in subpath:
+            raise PermissionError("Subpath must not contain drive specifications or alternate data streams (':').")
+
         # Disallow Windows drive prefixes or leading slashes in subpath
         subpath_obj = Path(subpath)
         if subpath_obj.is_absolute() or subpath_obj.drive or subpath.startswith("/") or subpath.startswith("\\"):
@@ -99,10 +102,14 @@ class ListWorkspaceTool(BaseTool):
             except ValueError:
                 is_external_link = True
 
+            is_junction = hasattr(os.path, "isjunction") and os.path.isjunction(item)
+            is_link = item.is_symlink() or is_junction
+
             entries.append({
                 "name": item.name,
                 "type": "directory" if item.is_dir() else "file",
-                "is_symlink": item.is_symlink(),
+                "is_symlink": is_link,
+                "is_junction": is_junction,
                 "is_external_target": is_external_link,
             })
 

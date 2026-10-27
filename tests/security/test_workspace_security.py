@@ -23,11 +23,11 @@ from backend.friday.tools.registry import ToolRegistry
 ])
 @pytest.mark.asyncio
 async def test_workspace_rejects_path_traversal(temp_workspace: Path, malicious_path: str):
-    """Ensure ListWorkspaceTool strictly prevents accessing paths outside the root."""
     tool = ListWorkspaceTool(workspace_root=temp_workspace)
     with pytest.raises(PermissionError) as exc_info:
         await tool.execute({"subpath": malicious_path})
-    assert "escapes" in str(exc_info.value).lower() or "relative" in str(exc_info.value).lower()
+    msg = str(exc_info.value).lower()
+    assert "escapes" in msg or "relative" in msg or "drive" in msg or "stream" in msg
 
 
 @pytest.mark.asyncio
@@ -64,17 +64,77 @@ async def test_symlink_or_junction_outside_root(tmp_path: Path):
     workspace.mkdir()
     outside_dir = tmp_path / "SensitiveOutsideDir"
     outside_dir.mkdir()
-    (outside_dir / "secret.txt").write_text("classified")
-
     link_path = workspace / "escape_link"
+    link_created = False
     try:
-        # Create a directory symlink or junction if OS allows (may require privileges on Windows)
         link_path.symlink_to(outside_dir, target_is_directory=True)
+        link_created = True
     except OSError:
-        pytest.skip("Symlink creation requires elevated privileges on this Windows configuration.")
+        # On Windows without Developer Mode, symlink_to raises WinError 1314.
+        # Directory junctions do not require elevated privileges.
+        try:
+            import _winapi
+            _winapi.CreateJunction(str(outside_dir), str(link_path))
+            link_created = True
+        except Exception:
+            pass
+
+    if not link_created:
+        pytest.skip("Neither symlink nor junction could be created on this filesystem.")
 
     tool = ListWorkspaceTool(workspace_root=workspace)
     # Attempting to list through the external link must be rejected
     with pytest.raises(PermissionError) as exc_info:
         await tool.execute({"subpath": "escape_link"})
     assert "escapes" in str(exc_info.value).lower() or "junction" in str(exc_info.value).lower()
+
+
+@pytest.mark.asyncio
+async def test_workspace_rejects_alternate_data_streams(temp_workspace: Path):
+    """Ensure alternate data stream colons are rejected."""
+    tool = ListWorkspaceTool(workspace_root=temp_workspace)
+    with pytest.raises(PermissionError) as exc_info:
+        await tool.execute({"subpath": "test.txt:hidden_stream"})
+    assert "alternate data streams" in str(exc_info.value).lower()
+
+
+@pytest.mark.asyncio
+async def test_workspace_rejects_nonexistent_directory(temp_workspace: Path):
+    """Ensure querying a nonexistent directory raises FileNotFoundError."""
+    tool = ListWorkspaceTool(workspace_root=temp_workspace)
+    with pytest.raises(FileNotFoundError):
+        await tool.execute({"subpath": "nonexistent_folder_abc"})
+
+
+@pytest.mark.asyncio
+async def test_workspace_rejects_file_as_directory(temp_workspace: Path):
+    """Ensure querying a file path raises NotADirectoryError."""
+    file_path = temp_workspace / "sample_file.txt"
+    file_path.write_text("just a text file")
+    tool = ListWorkspaceTool(workspace_root=temp_workspace)
+    with pytest.raises(NotADirectoryError):
+        await tool.execute({"subpath": "sample_file.txt"})
+
+
+@pytest.mark.asyncio
+async def test_external_junction_flagged_in_listing(tmp_path: Path):
+    """Ensure that an external junction inside workspace root is marked is_external_target=True."""
+    workspace = tmp_path / "FridayWorkspace"
+    workspace.mkdir()
+    outside_dir = tmp_path / "ExternalDir"
+    outside_dir.mkdir()
+
+    junc_path = workspace / "ext_junction"
+    try:
+        import _winapi
+        _winapi.CreateJunction(str(outside_dir), str(junc_path))
+    except Exception:
+        pytest.skip("Windows junction creation unavailable.")
+
+    tool = ListWorkspaceTool(workspace_root=workspace)
+    result = await tool.execute({})
+    entries = {e["name"]: e for e in result["entries"]}
+    assert "ext_junction" in entries
+    assert entries["ext_junction"]["is_external_target"] is True
+    assert entries["ext_junction"]["is_symlink"] is True
+
