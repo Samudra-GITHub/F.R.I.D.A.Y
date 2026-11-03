@@ -6,9 +6,15 @@
 
 .activity__loading { padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
 
-.timeline__row { display: grid; grid-template-columns: auto 1fr auto; gap: var(--sp-3); align-items: start; padding: var(--sp-3) var(--sp-5); animation: msg-in var(--dur-2) var(--ease-emphasized); }
+.timeline__day + .timeline__day { border-top: 1px solid var(--line-1); }
+.timeline__day-label { padding: var(--sp-4) var(--sp-5) var(--sp-1); font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+/* One continuous rail through each day's events. */
+.timeline { position: relative; }
+.timeline::before { content: ''; position: absolute; left: calc(var(--sp-5) + 13.5px); top: 0; bottom: 0; width: 1px; background: var(--line-2); }
+.list.timeline > li + li { border-top: 0; }
+.timeline__row { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: var(--sp-3); align-items: start; padding: var(--sp-3) var(--sp-5); animation: msg-in var(--dur-2) var(--ease-emphasized); }
 @keyframes msg-in { from { opacity: 0; transform: translateY(4px); } }
-.timeline__icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--r-sm); background: var(--surface-3); color: var(--text-2); }
+.timeline__icon { position: relative; z-index: 1; box-shadow: 0 0 0 4px var(--surface-1); display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--r-sm); background: var(--surface-3); color: var(--text-2); }
 .tone-ok .timeline__icon { color: var(--success); background: var(--success-soft); }
 .tone-danger .timeline__icon { color: var(--danger); background: var(--danger-soft); }
 .tone-warn .timeline__icon { color: var(--warning); background: var(--warning-soft); }

@@ -4,3 +4,4 @@
 .earth-host__notice { max-width: 560px; }
 .earth-host__status { display: flex; align-items: center; gap: var(--sp-3); color: var(--text-2); }
 .earth-host__status--over { position: absolute; inset: 0; justify-content: center; pointer-events: none; }
+.earth-host__error { margin: var(--sp-2) 0 var(--sp-3); font-size: var(--fs-12); color: var(--text-3); overflow-wrap: anywhere; }

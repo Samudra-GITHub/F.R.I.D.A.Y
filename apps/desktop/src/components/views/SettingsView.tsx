@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppProvider';
 import { useVoice } from '../../context/VoiceContext';
+import { PageHero } from '../ui/PageHero';
 import { Icon } from '../ui/Icon';
 import { VoiceLab } from '../settings/VoiceLab';
 import { LocationSettings } from '../settings/LocationSettings';
@@ -17,6 +18,14 @@ const Row: React.FC<{ label: string; hint?: React.ReactNode; children: React.Rea
     <div className="setting__control">{children}</div>
   </div>
 );
+
+const SECTIONS = [
+  { id: 'sys-h', label: 'System' },
+  { id: 'voice-h', label: 'Voice' },
+  { id: 'lab-h', label: 'Voice lab' },
+  { id: 'priv-h', label: 'Privacy & control' },
+  { id: 'loc-h', label: 'Location' },
+];
 
 const Status: React.FC<{ ok: boolean | null; yes: string; no: string }> = ({ ok, yes, no }) => (
   <span className="row small" style={{ gap: 8 }}>
@@ -42,17 +51,34 @@ export const SettingsView: React.FC = () => {
   return (
     <div className="page">
       <div className="page__inner">
-        <header className="page__header">
-          <div>
-            <h2 className="page__title">Settings</h2>
-            <p className="page__lede">System health, voice input and output, and privacy controls. Everything here runs on this computer.</p>
-          </div>
-          <div className="page__actions">
+        <PageHero
+          kicker="Runs on this computer"
+          title="Settings"
+          lede="System health, voice, privacy, and location. Nothing here sends anything to a cloud service."
+          actions={
             <button type="button" className="btn btn--sm" onClick={probe} disabled={probing}>
               {probing ? <span className="spinner" /> : <Icon name="refresh" size={13} />} Check again
             </button>
-          </div>
-        </header>
+          }
+        />
+
+        <div className="settings-layout">
+        <nav className="settings-index" aria-label="Settings sections">
+          {SECTIONS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className="settings-index__link"
+              onClick={() => document.getElementById(s.id)?.closest('section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              {s.label}
+            </button>
+          ))}
+          <button type="button" className="settings-index__link settings-index__out" onClick={() => (window.location.hash = 'diagnostics')}>
+            Diagnostics <Icon name="chevronRight" size={13} />
+          </button>
+        </nav>
+        <div className="settings-layout__main">
 
         <section className="card" aria-labelledby="sys-h">
           <div className="card__header"><div className="card__title" id="sys-h">System</div></div>
@@ -186,6 +212,8 @@ export const SettingsView: React.FC = () => {
           </div>
           <LocationSettings />
         </section>
+        </div>
+        </div>
       </div>
     </div>
   );

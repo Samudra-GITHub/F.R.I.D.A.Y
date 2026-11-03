@@ -1,7 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ChatMessageItem, HealthInfo, PendingApproval, SessionEvent } from '../types/voice';
-import { cancelChat, decideApproval, fetchHealth, resetConversation, sendChatMessage } from '../services/voiceApi';
+import { cancelChat, decideApproval, fetchHealth, fetchTurnProgress, resetConversation, sendChatMessage } from '../services/voiceApi';
 import { useVoice } from './VoiceContext';
+
+const PROGRESS_POLL_MS = 600;
 
 type BackendState = 'connecting' | 'online' | 'offline';
 
@@ -17,6 +19,8 @@ interface AppContextValue {
   messages: ChatMessageItem[];
   /** Epoch ms when the in-flight request started, or null when idle. */
   pendingSince: number | null;
+  /** The tool the backend is running for the current request, or null. */
+  runningTool: string | null;
   send: (text: string, opts?: { viaVoice?: boolean }) => Promise<void>;
   cancel: () => void;
   resetChat: () => Promise<void>;
@@ -47,6 +51,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [events, setEvents] = useState<SessionEvent[]>([]);
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [pendingSince, setPendingSince] = useState<number | null>(null);
+  const [runningTool, setRunningTool] = useState<string | null>(null);
 
   const conversationId = useRef(newId('conv'));
   // Bumped on reset: replies from an older generation are dropped, never shown in the new chat.
@@ -91,6 +96,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const controller = new AbortController();
       inflight.current = { requestId, controller };
       setPendingSince(started);
+      // The reply arrives all at once, so ask the backend what it's doing meanwhile.
+      const progressTimer = window.setInterval(async () => {
+        const progress = await fetchTurnProgress(requestId, controller.signal);
+        if (inflight.current?.requestId !== requestId) return;
+        setRunningTool(progress?.phase === 'executing' ? progress.tool : null);
+      }, PROGRESS_POLL_MS);
 
       try {
         const data = await sendChatMessage(trimmed, conversationId.current, requestId, controller.signal);
@@ -142,6 +153,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           outcome: aborted ? 'cancelled' : 'failed',
         });
       } finally {
+        window.clearInterval(progressTimer);
+        setRunningTool(null);
         if (inflight.current?.requestId === requestId) {
           inflight.current = null;
           setPendingSince(null);
@@ -220,13 +233,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clearEvents: () => setEvents([]),
       messages,
       pendingSince,
+      runningTool,
       send,
       cancel,
       resetChat,
       decide,
       emergencyStop,
     }),
-    [backend, health, refreshHealth, events, logEvent, messages, pendingSince, send, cancel, resetChat, decide, emergencyStop]
+    [backend, health, refreshHealth, events, logEvent, messages, pendingSince, runningTool, send, cancel, resetChat, decide, emergencyStop]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -234,11 +248,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 /** The single assistant phase shown by the presence mark and status line. */
 export const useAssistantPhase = (): import('../types/voice').AssistantPhase => {
-  const { backend, pendingSince, messages } = useApp();
+  const { backend, pendingSince, messages, runningTool } = useApp();
   const voice = useVoice();
   if (voice.phase === 'listening') return 'listening';
   if (voice.phase === 'transcribing') return 'transcribing';
-  if (messages.some((m) => m.approvals?.some((a) => a.status === 'executing'))) return 'executing';
+  if (runningTool || messages.some((m) => m.approvals?.some((a) => a.status === 'executing'))) return 'executing';
   if (pendingSince !== null) return 'thinking';
   if (voice.isSpeaking) return 'speaking';
   if (voice.pending) return 'reviewing';

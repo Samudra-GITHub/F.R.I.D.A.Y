@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui/Icon';
 import { useLocationAwareness } from '../../context/LocationProvider';
-import { EARTH_FOCUS_EVENT, takeEarthFocus } from '../../services/earthLocation';
+import { EARTH_FOCUS_EVENT, earthFailureAdvice, takeEarthFocus } from '../../services/earthLocation';
 import './EarthView.css';
 
 /**
@@ -22,6 +22,8 @@ export const EarthView: React.FC<{ active: boolean; onQuietChange: (quiet: boole
   const frame = useRef<HTMLIFrameElement>(null);
   const { view, status: locationStatus, locateOnce } = useLocationAwareness();
   const [frameReady, setFrameReady] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [frameKey, setFrameKey] = useState(0);
   const askedOnce = useRef(false);
 
   const probe = useCallback(async () => {
@@ -60,6 +62,7 @@ export const EarthView: React.FC<{ active: boolean; onQuietChange: (quiet: boole
     const onMessage = (event: MessageEvent) => {
       if (event.origin !== EARTH_ORIGIN || event.source !== frame.current?.contentWindow) return;
       if (event.data?.type === 'gev:ready') setFrameReady(true);
+      else if (event.data?.type === 'wednesday:earth-failed') setFailure(String(event.data.message ?? 'Unknown error'));
       else if (event.data?.type === 'wednesday:locate-request') void locateOnce();
       else if (event.data?.type === 'wednesday:quiet') onQuietChange(event.data.quiet === true);
     };
@@ -126,6 +129,31 @@ export const EarthView: React.FC<{ active: boolean; onQuietChange: (quiet: boole
     );
   }
 
+  if (failure) {
+    return (
+      <div className="earth-host earth-host--message">
+        <div className="notice notice--warn earth-host__notice" role="alert">
+          <Icon name="alert" size={15} />
+          <div>
+            <strong>Earth couldn’t start.</strong> {earthFailureAdvice(failure)}
+            <p className="earth-host__error mono">{failure}</p>
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={() => {
+                setFailure(null);
+                setFrameReady(false);
+                setFrameKey((k) => k + 1);
+              }}
+            >
+              <Icon name="refresh" size={13} /> Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="earth-host">
       {status !== 'ready' && (
@@ -135,6 +163,7 @@ export const EarthView: React.FC<{ active: boolean; onQuietChange: (quiet: boole
       )}
       {status !== 'checking' && (
         <iframe
+          key={frameKey}
           ref={frame}
           className="earth-host__frame"
           src={EARTH_URL}

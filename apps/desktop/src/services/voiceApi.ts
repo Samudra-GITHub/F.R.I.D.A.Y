@@ -64,6 +64,20 @@ export function sendChatMessage(
   );
 }
 
+export interface TurnProgress {
+  phase: 'thinking' | 'executing' | 'idle';
+  tool: string | null;
+}
+
+export async function fetchTurnProgress(requestId: string, signal?: AbortSignal): Promise<TurnProgress | null> {
+  try {
+    const res = await fetch(`/api/chat/progress/${encodeURIComponent(requestId)}`, { signal });
+    return res.ok ? ((await res.json()) as TurnProgress) : null;
+  } catch {
+    return null;
+  }
+}
+
 export const cancelChat = (requestId: string) => post<{ status: string }>('/chat/cancel', { request_id: requestId });
 
 export async function resetConversation(conversationId?: string | null): Promise<void> {

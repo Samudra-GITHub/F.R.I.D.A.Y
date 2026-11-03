@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Icon, IconName } from '../ui/Icon';
+import { PageHero } from '../ui/PageHero';
 import { fetchDisasters, fetchEarthquakes, fetchNaturalEvents, fetchWorldNews } from '../../services/worldApi';
 import { ago, requestEarthFocus } from '../../services/earthLocation';
 import { FeedEnvelope } from '../../types/intelligence';
@@ -178,17 +179,17 @@ export const IntelligenceView: React.FC<{ onOpenEarth: () => void }> = ({ onOpen
   return (
     <div className="page">
       <div className="page__inner intel">
-        <div className="page__header">
-          <div>
-            <h2 className="page__title">Intelligence</h2>
-            <p className="page__lede">What’s happening in the world, from public sources. Each feed shows who published it and when it was retrieved.</p>
-          </div>
-          <div className="page__actions">
+        <PageHero
+          kicker="Public sources"
+          title="Intelligence"
+          lede="What’s happening in the world. Each feed shows who published it and when it was retrieved, and says so when it can’t be reached."
+          stats={FEEDS.map((f) => ({ label: f.title, value: feeds[f.id] ? feeds[f.id]!.items.length : '–' }))}
+          actions={
             <button type="button" className="btn" onClick={load} disabled={loading}>
               <Icon name="refresh" size={14} /> Refresh
             </button>
-          </div>
-        </div>
+          }
+        />
         <div className="intel-grid">
           {FEEDS.map((meta) => (
             <FeedColumn

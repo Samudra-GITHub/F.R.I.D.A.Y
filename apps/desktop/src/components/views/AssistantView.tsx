@@ -325,7 +325,7 @@ const MicButton: React.FC = () => {
 };
 
 export const AssistantView: React.FC = () => {
-  const { messages, send, pendingSince, cancel, resetChat, backend, decide } = useApp();
+  const { messages, send, pendingSince, cancel, resetChat, backend, decide, runningTool } = useApp();
   const voice = useVoice();
   const phase = useAssistantPhase();
   const [draft, setDraft] = useState('');
@@ -416,9 +416,9 @@ export const AssistantView: React.FC = () => {
             ))}
             {pending && (
               <div className="msg msg--assistant msg--working">
-                <Presence phase="thinking" size={28} />
+                <Presence phase={runningTool ? 'executing' : 'thinking'} size={28} />
                 <div className="working">
-                  <span>Working on it</span>
+                  <span>{runningTool ? `Running ${runningTool.replace(/_/g, ' ')}` : 'Working on it'}</span>
                   <Elapsed since={pendingSince!} />
                   <button type="button" className="btn btn--ghost btn--sm" onClick={cancel}>
                     Stop

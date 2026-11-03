@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { createMemory, deleteMemory, listMemories, updateMemory } from '../../services/voiceApi';
 import { MemoryItem } from '../../types/voice';
 import { useApp } from '../../context/AppProvider';
+import { PageHero } from '../ui/PageHero';
 import { Icon } from '../ui/Icon';
 import './Page.css';
 import './MemoryView.css';
@@ -28,6 +29,7 @@ const formatDate = (iso: string) =>
 export const MemoryView: React.FC = () => {
   const { backend, logEvent } = useApp();
   const [items, setItems] = useState<MemoryItem[]>([]);
+  const [show, setShow] = useState<'all' | MemoryItem['kind']>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
@@ -92,21 +94,30 @@ export const MemoryView: React.FC = () => {
   };
 
   const selectedKind = KINDS.find((k) => k.id === kind)!;
+  const counts = items.reduce<Record<string, number>>((acc, m) => ({ ...acc, [m.kind]: (acc[m.kind] ?? 0) + 1 }), {});
+  const shown = show === 'all' ? items : items.filter((m) => m.kind === show);
 
   return (
     <div className="page">
       <div className="page__inner">
-        <header className="page__header">
-          <div>
-            <h2 className="page__title">Memory</h2>
-            <p className="page__lede">
-              What W.E.D.N.E.S.D.A.Y. remembers between conversations. Only you can add, edit, or delete memories; the model
-              can read them as context but cannot write them or use them to gain permissions. Stored locally in{' '}
+        <PageHero
+          kicker="Yours to edit"
+          title="Memory"
+          lede={
+            <>
+              What W.E.D.N.E.S.D.A.Y. remembers between conversations. Only you can add, edit, or delete memories. The model
+              reads them as context but can’t write them or use them to gain permissions. Stored on this computer in{' '}
               <code>~/.friday/memory.sqlite3</code>.
-            </p>
-          </div>
-        </header>
+            </>
+          }
+          stats={[
+            { label: 'Remembered', value: items.length },
+            { label: 'Always given to the model', value: (counts.preference ?? 0) + (counts.profile ?? 0), tone: 'accent' },
+          ]}
+        />
 
+        <div className="memory-layout">
+        <aside className="memory-layout__side">
         <form className="card memory__composer" onSubmit={add}>
           <div className="memory__kinds" role="radiogroup" aria-label="Memory type">
             {KINDS.map((k) => (
@@ -135,6 +146,17 @@ export const MemoryView: React.FC = () => {
           </div>
         </form>
 
+        <nav className="card memory__filters" aria-label="Show memories of type">
+          {[{ id: 'all' as const, label: 'All' }, ...KINDS].map((k) => (
+            <button key={k.id} type="button" className="memory__filter" aria-pressed={show === k.id} onClick={() => setShow(k.id)}>
+              <span>{k.label}</span>
+              <span className="mono tabular">{k.id === 'all' ? items.length : counts[k.id] ?? 0}</span>
+            </button>
+          ))}
+        </nav>
+        </aside>
+
+        <div className="memory-layout__main">
         <div className="toolbar">
           <div className="memory__search">
             <Icon name="search" size={15} />
@@ -155,17 +177,17 @@ export const MemoryView: React.FC = () => {
             <div className="activity__loading" style={{ padding: 16, display: 'grid', gap: 12 }}>
               {[0, 1].map((i) => <div key={i} className="skeleton" style={{ height: 56 }} />)}
             </div>
-          ) : items.length === 0 ? (
+          ) : shown.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state__icon"><Icon name="memory" size={20} /></div>
-              <div className="empty-state__title">{query ? 'No matches' : 'No memories yet'}</div>
+              <div className="empty-state__title">{query || show !== 'all' ? 'No matches' : 'No memories yet'}</div>
               <p className="empty-state__body">
                 {query ? 'Try different words.' : 'Add a preference above. It will be given to the model as reference context in future conversations.'}
               </p>
             </div>
           ) : (
             <ul className="list">
-              {items.map((m) => (
+              {shown.map((m) => (
                 <li key={m.id} className="memory__item">
                   <span className={`badge memory__kind memory__kind--${m.kind}`}>{m.kind}</span>
                   <div className="memory__main">
@@ -209,6 +231,8 @@ export const MemoryView: React.FC = () => {
             </ul>
           )}
         </section>
+        </div>
+        </div>
         <p className="small muted">
           Deleting a memory erases its text and removes it from search immediately. A content-free tombstone remains so it
           can’t be re-created by re-indexing.

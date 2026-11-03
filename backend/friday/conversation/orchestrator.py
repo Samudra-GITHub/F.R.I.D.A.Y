@@ -80,6 +80,9 @@ class ConversationOrchestrator:
         # Request IDs the user asked to cancel. Checked before every model call and
         # every tool dispatch; work already dispatched is reported, not retracted.
         self._cancelled: set[str] = set()
+        # What each in-flight request is doing right now, for the UI's live state.
+        # Holds no arguments or results: only the phase and the tool's name.
+        self._progress: Dict[str, Dict[str, Optional[str]]] = {}
         
         # Sessions map with LRU eviction for bounded memory
         self._sessions: OrderedDict[str, List[ChatMessage]] = OrderedDict()
@@ -106,6 +109,17 @@ class ConversationOrchestrator:
         else:
             self._sessions.move_to_end(session_id)
         return self._sessions[session_id]
+
+    def progress(self, request_id: str) -> Dict[str, Optional[str]]:
+        """The current phase of a request: thinking, executing a named tool, or idle once finished."""
+        return dict(self._progress.get(request_id, {"phase": "idle", "tool": None}))
+
+    def _set_progress(self, request_id: Optional[str], phase: str, tool: Optional[str] = None) -> None:
+        if not request_id:
+            return
+        if request_id not in self._progress and len(self._progress) >= 200:
+            self._progress.clear()
+        self._progress[request_id] = {"phase": phase, "tool": tool}
 
     def cancel(self, request_id: str) -> None:
         """Ask an in-flight turn to stop before its next model call or tool dispatch."""
@@ -343,6 +357,14 @@ class ConversationOrchestrator:
         return list(self._get_session_history(session_id))
 
     async def execute_turn(self, request: ConversationRequest) -> ConversationResponse:
+        """Run one turn, recording its phase for `progress` until it finishes."""
+        try:
+            return await self._execute_turn(request)
+        finally:
+            if request.request_id:
+                self._progress.pop(request.request_id, None)
+
+    async def _execute_turn(self, request: ConversationRequest) -> ConversationResponse:
 
         """Execute a conversational turn through capability broker and tool loop."""
         session_id = request.conversation_id or self.default_session_id
@@ -389,6 +411,7 @@ class ConversationOrchestrator:
                 if self._is_cancelled(request.request_id):
                     return cancelled_response()
                 try:
+                    self._set_progress(request.request_id, "thinking")
                     response = await self._chat_until_cancelled(messages, tools_spec, request.request_id)
                     if response is None:
                         return cancelled_response()
@@ -595,6 +618,7 @@ class ConversationOrchestrator:
                         )
                         continue
 
+                    self._set_progress(request.request_id, "executing", tool_name)
                     try:
                         if inspect.iscoroutinefunction(tool.execute):
                             raw_output = await tool.execute(proposal.arguments)

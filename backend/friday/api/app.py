@@ -215,6 +215,13 @@ async def chat_cancel_endpoint(request: ChatCancelRequest) -> dict:
 
 # ---- Capabilities, consent, and audit ---------------------------------------
 
+@app.get("/chat/progress/{request_id}")
+@app.get("/api/chat/progress/{request_id}")
+async def chat_progress_endpoint(request_id: str) -> dict:
+    """What an in-flight request is doing now: thinking, executing a tool, or idle."""
+    return orchestrator.progress(request_id[:128])
+
+
 @app.get("/capabilities")
 @app.get("/api/capabilities")
 async def capabilities_endpoint() -> dict:

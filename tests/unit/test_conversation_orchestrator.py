@@ -15,6 +15,8 @@ Covers:
 - No cloud fallback
 """
 
+import inspect
+
 import pytest
 from pathlib import Path
 from schemas.contracts import (
@@ -359,3 +361,49 @@ async def test_conversation_reset(base_environment):
 
     orchestrator.reset_conversation("session-42")
     assert len(orchestrator.get_history("session-42")) == 0
+
+
+@pytest.mark.asyncio
+async def test_progress_reports_the_running_tool_then_clears(base_environment):
+    """While a tool runs, progress names it; before and after, it says thinking and then idle."""
+    registry, broker = base_environment
+    seen = []
+    orchestrator = None
+    time_tool = registry.get("get_local_time")
+    original = time_tool.execute
+
+    async def recording_execute(arguments):
+        seen.append(orchestrator.progress("req-1"))
+        result = original(arguments)
+        return await result if inspect.isawaitable(result) else result
+
+    time_tool.execute = recording_execute
+
+    class RecordingAdapter(MockAdapter):
+        async def chat(self, messages, tools=None):
+            seen.append(orchestrator.progress("req-1"))
+            return await super().chat(messages, tools)
+
+    adapter = RecordingAdapter(responses=[
+        ModelResponse(content="", tool_calls=[{"function": {"name": "get_local_time", "arguments": {}}}]),
+        ModelResponse(content="It is noon."),
+    ])
+    orchestrator = ConversationOrchestrator(model_adapter=adapter, registry=registry, broker=broker)
+
+    resp = await orchestrator.execute_turn(ConversationRequest(message="Time?", request_id="req-1"))
+
+    assert resp.status == "ok"
+    assert seen[0] == {"phase": "thinking", "tool": None}
+    assert {"phase": "executing", "tool": "get_local_time"} in seen
+    assert seen[-1] == {"phase": "thinking", "tool": None}
+    assert orchestrator.progress("req-1") == {"phase": "idle", "tool": None}
+
+
+@pytest.mark.asyncio
+async def test_progress_is_cleared_even_when_the_turn_fails(base_environment):
+    registry, broker = base_environment
+    adapter = MockAdapter(responses=[ModelConnectionError("down")])
+    orchestrator = ConversationOrchestrator(model_adapter=adapter, registry=registry, broker=broker)
+    await orchestrator.execute_turn(ConversationRequest(message="Hi", request_id="req-2"))
+    assert orchestrator.progress("req-2") == {"phase": "idle", "tool": None}
+

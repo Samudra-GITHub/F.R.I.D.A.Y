@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { fetchCapabilities, setConsent } from '../../services/voiceApi';
 import { CapabilitiesResponse, ConsentKey } from '../../types/voice';
 import { useApp } from '../../context/AppProvider';
+import { PageHero } from '../ui/PageHero';
 import { Icon, IconName } from '../ui/Icon';
 import './Page.css';
 import './ToolsView.css';
@@ -22,7 +23,7 @@ const CONSENTS: { key: ConsentKey; title: string; body: string; icon: IconName }
   {
     key: 'location_read',
     title: 'Read device location',
-    body: 'Lets the assistant read the latest Windows location fix, if location tracking is on. Tracking itself is controlled on the Earth screen.',
+    body: 'Lets the assistant read your latest position from Windows. How often it’s read is set in Settings → Location.',
     icon: 'locate',
   },
   {
@@ -79,16 +80,23 @@ export const ToolsView: React.FC = () => {
   return (
     <div className="page">
       <div className="page__inner">
-        <header className="page__header">
-          <div>
-            <h2 className="page__title">Tools & permissions</h2>
-            <p className="page__lede">
+        <PageHero
+          kicker="Deny by default"
+          title="Security"
+          lede={
+            <>
               The model can only <em>propose</em> actions. The capability broker checks every proposal against the tool’s
               schema and the permissions below, and denies anything else. Permissions last for this backend session and
               reset to the configured defaults when it restarts.
-            </p>
-          </div>
-        </header>
+            </>
+          }
+          stats={[
+            { label: 'Tools registered', value: caps?.tools.length ?? '–' },
+            { label: 'Permitted now', value: caps ? caps.tools.filter((t) => t.permitted).length : '–', tone: 'accent' },
+            { label: 'Permissions granted', value: caps ? `${CONSENTS.filter((c) => caps.consents?.[c.key]).length} of ${CONSENTS.length}` : '–' },
+            { label: 'Shell access', value: 'None' },
+          ]}
+        />
 
         {(error || backend === 'offline') && (
           <div className="notice notice--danger" role="alert">
@@ -104,10 +112,11 @@ export const ToolsView: React.FC = () => {
               <div className="card__subtitle">You decide these; the model can’t change them.</div>
             </div>
           </div>
+          <div className="consent-grid">
           {CONSENTS.map((c) => {
             const on = caps?.consents?.[c.key] ?? false;
             return (
-              <div className="setting consent" key={c.key}>
+              <div className={`consent-tile ${on ? 'is-on' : ''}`} key={c.key}>
                 <div className="consent__label">
                   <span className={`consent__icon ${on ? 'is-on' : ''}`}><Icon name={c.icon} size={16} /></span>
                   <div>
@@ -130,6 +139,7 @@ export const ToolsView: React.FC = () => {
               </div>
             );
           })}
+          </div>
         </section>
 
         <section className="card">
@@ -145,7 +155,7 @@ export const ToolsView: React.FC = () => {
               {[0, 1, 2].map((i) => <div key={i} className="skeleton" style={{ height: 40 }} />)}
             </div>
           ) : (
-            <ul className="list">
+            <ul className="tool-grid">
               {caps.tools.map((t) => {
                 const params = Object.keys((t.parameters as { properties?: object }).properties ?? {});
                 return (

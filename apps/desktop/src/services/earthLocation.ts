@@ -103,6 +103,17 @@ export function permissionLabel(status: LocationServiceStatus | null): string {
   return 'Not checked yet';
 }
 
+/** Plain advice for why Earth couldn't start, from the error it reported. */
+export function earthFailureAdvice(message: string): string {
+  if (/webgl|graphics|gpu|context/i.test(message)) {
+    return 'Earth needs WebGL. Turn on hardware acceleration in your browser settings, or update your graphics driver, then retry.';
+  }
+  if (/fetch|network|load|import/i.test(message)) {
+    return 'Part of Earth didn’t load. Check that the desktop dev server is still running, then retry.';
+  }
+  return 'Retry first. If it keeps failing, the message below shows what went wrong.';
+}
+
 const FOCUS_EVENT = 'wednesday:earth-focus';
 export interface EarthFocus {
   latitude: number;

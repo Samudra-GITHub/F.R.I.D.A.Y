@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ago, describeLocation, permissionLabel, usableFix } from '../src/services/earthLocation.ts';
+import { ago, describeLocation, earthFailureAdvice, permissionLabel, usableFix } from '../src/services/earthLocation.ts';
 
 const NOW = Date.parse('2026-10-31T12:00:00Z');
 const fix = (over = {}) => ({
@@ -108,4 +108,10 @@ test('times read as elapsed', () => {
   assert.equal(ago('2026-10-31T11:59:40Z', NOW), 'just now');
   assert.equal(ago('2026-10-31T09:00:00Z', NOW), '3 h ago');
   assert.equal(ago(null, NOW), 'at an unknown time');
+});
+
+test('an Earth failure gets advice that matches its cause', () => {
+  assert.match(earthFailureAdvice('Error constructing CesiumWidget: WebGL initialization failed'), /hardware acceleration/);
+  assert.match(earthFailureAdvice('Failed to fetch dynamically imported module'), /dev server/);
+  assert.match(earthFailureAdvice('Something odd'), /Retry first/);
 });

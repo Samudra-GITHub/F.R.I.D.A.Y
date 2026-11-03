@@ -3318,7 +3318,7 @@ index 0b479f4..577e45e 100644
      defer(flyToAustin(viewer));
    } else {
 diff --git a/src/app/embed.js b/src/app/embed.js
-index 21e685a..4a437d5 100644
+index 21e685a..f40ed8a 100644
 --- a/src/app/embed.js
 +++ b/src/app/embed.js
 @@ -14,6 +14,7 @@
@@ -3351,7 +3351,7 @@ index 21e685a..4a437d5 100644
          describeError(error),
        );
      },
-@@ -263,8 +270,15 @@ export function installViews({
+@@ -263,8 +270,16 @@ export function installViews({
      });
    if (!isEmbedded(location)) return () => {};
  
@@ -3359,6 +3359,7 @@ index 21e685a..4a437d5 100644
 -  shell.setCleanView?.(true);
 +  // W.E.D.N.E.S.D.A.Y. local patch: `&ui=full` keeps the whole interface in a frame.
 +  const fullUi = isFullInterfaceEmbed(location);
++  if (fullUi) windowRef.document.body.classList.add('ui-embed-full');
 +  const removeEarthControls = fullUi
 +    ? installWednesdayEarth({ viewer, dataManager, run, ready, signal, windowRef })
 +    : () => {};
@@ -3369,7 +3370,7 @@ index 21e685a..4a437d5 100644
    const stopRendering = isEmbeddedInline()
      ? keepPanelRendering(viewer, { windowRef })
      : () => {};
-@@ -322,6 +336,7 @@ export function installViews({
+@@ -322,6 +337,7 @@ export function installViews({
    });
    return () => {
      stopRendering();
@@ -5618,10 +5619,10 @@ index 96c5df6..7837a92 100644
        components.rendering.getVisual(record).billboard.image =
          components.rendering.shipIcon(record, false);
 diff --git a/src/main.js b/src/main.js
-index 2635ecc..2eae458 100644
+index 2635ecc..4b14ebf 100644
 --- a/src/main.js
 +++ b/src/main.js
-@@ -9,7 +9,7 @@ const application = createStandaloneApplication({
+@@ -9,12 +9,19 @@ const application = createStandaloneApplication({
  });
  
  application.start().catch((error) => {
@@ -5630,6 +5631,18 @@ index 2635ecc..2eae458 100644
    const loaderStatus = document.querySelector('#loading-screen .loader-status');
    loaderStatus.textContent = t('Error: {message}', {
      message: describeError(error),
+   });
+   loaderStatus.style.color = '#ff4444';
++  // F.R.I.D.A.Y. local patch: tell the framing app, which can explain and offer a retry.
++  if (window.parent !== window) {
++    window.parent.postMessage(
++      { type: 'wednesday:earth-failed', message: describeError(error).slice(0, 300) },
++      '*',
++    );
++  }
+ });
+ 
+ export { application };
 diff --git a/src/panelStackLayout.test.mjs b/src/panelStackLayout.test.mjs
 index a13f5c0..19c1b52 100644
 --- a/src/panelStackLayout.test.mjs
@@ -5656,6 +5669,28 @@ index a13f5c0..19c1b52 100644
 +    /#param-slider-panel:not\(\.collapsed\) \.param-panel-divider\s*\{[\s\S]*?linear-gradient\(\s*90deg,\s*rgb\(0 212 255 \/ 28%\),\s*rgba\(233, 184, 114, 0\.18\) 58%,\s*transparent\s*\);/,
    );
  });
+diff --git a/src/tooling/skyAssets.paintOut.test.mjs b/src/tooling/skyAssets.paintOut.test.mjs
+index ddb5758..1c570ff 100644
+--- a/src/tooling/skyAssets.paintOut.test.mjs
++++ b/src/tooling/skyAssets.paintOut.test.mjs
+@@ -1,5 +1,6 @@
+ import assert from 'node:assert/strict';
+ import test from 'node:test';
++import { fileURLToPath } from 'node:url';
+ import sharp from 'sharp';
+ import {
+   CUBE_FACES,
+@@ -23,8 +24,9 @@ test('painted-out planets leave no disc brighter than the sky around them', asyn
+     ring: [],
+   }));
+   for (const face of CUBE_FACES) {
++    // fileURLToPath, not .pathname: on Windows a URL path reads "/C:/...", which isn't a file.
+     const { data, info } = await sharp(
+-      new URL(`milkyway_${FACE_FILE_SUFFIX[face]}.webp`, SKY).pathname,
++      fileURLToPath(new URL(`milkyway_${FACE_FILE_SUFFIX[face]}.webp`, SKY)),
+     )
+       .raw()
+       .toBuffer({ resolveWithObject: true });
 diff --git a/src/tools/globePanel.js b/src/tools/globePanel.js
 index 0bfa5c2..ba3eb3f 100644
 --- a/src/tools/globePanel.js
@@ -6976,10 +7011,10 @@ index b2c052e..2bd3b8d 100644
  .rail-card-labels {
 diff --git a/src/ui/styles/wednesday.css b/src/ui/styles/wednesday.css
 new file mode 100644
-index 0000000..be7e13a
+index 0000000..513404a
 --- /dev/null
 +++ b/src/ui/styles/wednesday.css
-@@ -0,0 +1,407 @@
+@@ -0,0 +1,446 @@
 +/*
 + * W.E.D.N.E.S.D.A.Y. Earth: the planet is the interface. The desktop shell supplies
 + * the brand and status bar over the top 56px, so nothing here repeats them.
@@ -7386,6 +7421,45 @@ index 0000000..be7e13a
 +  #earth-dial button {
 +    transition: none;
 +  }
++}
++
++/* ── Phone: the bottom belongs to voice and the tab bars, so the camera goes up top ── */
++body.mobile-shell .earth-dial__stops {
++  top: 62px;
++  bottom: auto;
++  /* Clear the key and language chips on the right edge. */
++  left: 12px;
++  right: 64px;
++  transform: none;
++  max-width: none;
++}
++body.mobile-shell .earth-dial__actions {
++  top: 104px;
++  bottom: auto;
++  left: 12px;
++  transform: none;
++}
++/* The provider is chosen on a wider screen; on a phone the picker covers the planet. */
++/* Hover and focus reveal it with an ID-and-pseudo-class selector, so this must win outright. */
++body.mobile-shell #gev-voice-control #gev-voice-provider-field {
++  display: none !important;
++}
++body.mobile-shell .earth-dial__stop {
++  padding: 4px 7px;
++}
++
++/* ── Cyber keeps its own look, but inside the shell it sits under the shell's status
++   bar, which already shows the brand. ── */
++:root[data-ui-theme='cyber'] body.ui-embed-full:not(.cockpit-mode, .mobile-shell) #title-bar {
++  display: none;
++}
++:root[data-ui-theme='cyber'] body.ui-embed-full:not(.cockpit-mode, .mobile-shell) :is(#top-center-actions, #style-indicator) {
++  top: 64px;
++}
++
++/* The cockpit has its own header and exit; the focus banner would sit on top of it. */
++body.cockpit-mode #earth-lens {
++  display: none;
 +}
 diff --git a/src/ui/templates/hud-loading.html b/src/ui/templates/hud-loading.html
 index 1a68a70..51d5051 100644

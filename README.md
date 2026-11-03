@@ -157,22 +157,23 @@ npm --prefix apps/desktop run build
 npm --prefix apps/gods-eye-view test
 ```
 
-At the last full run: backend 205 passed; desktop 40 passed, with a clean type check and build; Earth 9,113 of 9,125 passed, with 11 skipped and 1 failing upstream test, which is a known Windows file path issue in its sky image check.
+At the last full run: backend 207 passed; desktop 41 passed, with a clean type check and build; Earth 9,114 passed, 11 skipped, none failed.
 
 </details>
 
 ## Where it stands
 
 **Working and checked in the running app:**
-- the whole-planet opening, orbit dial, Focus on me and focus mode for real aircraft, satellites and earthquakes
+- the whole-planet opening, orbit dial, Focus on me, and focus mode for real aircraft, satellites, and earthquakes
+- 3D models for the selected aircraft and satellite
 - all three location modes, with Pause and Stop
-- the Intelligence screen and the seven states of the core
+- the seven states of the core, including **executing** while a tool runs
+- the redesigned Activity, Memory, Security, and Settings screens, and the phone layout
+- what happens when things go wrong: a stopped backend, denied location permission (simulated), a graphics (WebGL) failure, plus the Cyber layout and the cockpit view
 
 **Not yet verified:**
 - voice recognition on a real microphone
 - frame rate on a dedicated graphics card
-- denied location permission, network failure and graphics (WebGL) failure
-- the cockpit view, and the phone layout
 - live ships, which need an AISStream key
 
 More detail is in [docs/overhaul](docs/overhaul).

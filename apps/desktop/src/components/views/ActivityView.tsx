@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../context/AppProvider';
 import { fetchAudit } from '../../services/voiceApi';
 import { AuditEvent, SessionEvent } from '../../types/voice';
+import { PageHero } from '../ui/PageHero';
 import { Icon, IconName } from '../ui/Icon';
 import './Page.css';
 import './ActivityView.css';
@@ -51,6 +52,14 @@ const fromSession = (e: SessionEvent): Row => ({
   icon: e.kind === 'conversation' ? 'assistant' : e.kind === 'voice' ? 'mic' : e.kind === 'world' ? 'earth' : e.kind === 'location' ? 'locate' : 'cpu',
 });
 
+/** "Today", "Yesterday", or the date, for grouping the timeline. */
+export function dayLabel(at: number, now = Date.now()): string {
+  const day = (t: number) => new Date(t).toDateString();
+  if (day(at) === day(now)) return 'Today';
+  if (day(at) === day(now - 86400000)) return 'Yesterday';
+  return new Date(at).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+}
+
 export const ActivityView: React.FC = () => {
   const { events, clearEvents, backend } = useApp();
   const [audit, setAudit] = useState<AuditEvent[]>([]);
@@ -84,32 +93,39 @@ export const ActivityView: React.FC = () => {
 
   const deniedCount = audit.filter((a) => a.outcome === 'denied').length;
 
+  const days = useMemo(() => {
+    const groups: { label: string; rows: Row[] }[] = [];
+    for (const r of rows) {
+      const label = dayLabel(r.at);
+      if (groups[groups.length - 1]?.label !== label) groups.push({ label, rows: [] });
+      groups[groups.length - 1].rows.push(r);
+    }
+    return groups;
+  }, [rows]);
+
   return (
     <div className="page">
       <div className="page__inner">
-        <header className="page__header">
-          <div>
-            <h2 className="page__title">Activity</h2>
-            <p className="page__lede">
-              Every capability-broker decision and what happened in this session. Tool arguments are never stored. The
-              broker log keeps the last 200 decisions in memory and clears when the backend restarts.
-            </p>
-          </div>
-          <div className="page__actions">
-            <button type="button" className="btn btn--sm" onClick={load} disabled={backend !== 'online'}>
-              <Icon name="refresh" size={13} /> Refresh
-            </button>
-            <button type="button" className="btn btn--sm btn--ghost" onClick={clearEvents} disabled={!events.length}>
-              Clear session events
-            </button>
-          </div>
-        </header>
-
-        <div className="activity__stats">
-          <div className="stat"><span className="stat__value tabular">{audit.filter((a) => a.kind === 'decision').length}</span><span className="stat__label">Broker decisions</span></div>
-          <div className="stat"><span className="stat__value tabular stat__value--danger">{deniedCount}</span><span className="stat__label">Denied</span></div>
-          <div className="stat"><span className="stat__value tabular">{events.length}</span><span className="stat__label">Session events</span></div>
-        </div>
+        <PageHero
+          kicker="Accountability"
+          title="Activity"
+          lede="Every decision the capability broker made, and what happened in this session. Tool arguments are never stored; the broker keeps its last 200 decisions in memory until the backend restarts."
+          stats={[
+            { label: 'Broker decisions', value: audit.filter((a) => a.kind === 'decision').length },
+            { label: 'Denied', value: deniedCount, tone: deniedCount ? 'danger' : undefined },
+            { label: 'Session events', value: events.length },
+          ]}
+          actions={
+            <>
+              <button type="button" className="btn btn--sm" onClick={load} disabled={backend !== 'online'}>
+                <Icon name="refresh" size={13} /> Refresh
+              </button>
+              <button type="button" className="btn btn--sm btn--ghost" onClick={clearEvents} disabled={!events.length}>
+                Clear session events
+              </button>
+            </>
+          }
+        />
 
         <div className="toolbar" role="group" aria-label="Filter activity">
           {(['all', 'broker', 'denied', 'session'] as Filter[]).map((f) => (
@@ -138,8 +154,11 @@ export const ActivityView: React.FC = () => {
               <p className="empty-state__body">Ask the assistant something that needs a tool, like the local time or recent earthquakes, and its decisions will show up here.</p>
             </div>
           ) : (
+            days.map((d) => (
+            <div key={d.label} className="timeline__day">
+            <h3 className="timeline__day-label">{d.label}</h3>
             <ol className="list timeline">
-              {rows.map((r) => (
+              {d.rows.map((r) => (
                 <li key={r.key} className={`timeline__row tone-${r.tone}`}>
                   <span className="timeline__icon"><Icon name={r.icon} size={15} /></span>
                   <div className="timeline__main">
@@ -156,6 +175,8 @@ export const ActivityView: React.FC = () => {
                 </li>
               ))}
             </ol>
+            </div>
+            ))
           )}
         </section>
       </div>
