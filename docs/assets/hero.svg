@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-labelledby="t d">
+  <title id="t">W.E.D.N.E.S.D.A.Y.</title>
+  <desc id="d">A turning planet with a pulsing location marker, an altitude dial whose needle moves from Global to Street, and the W.E.D.N.E.S.D.A.Y. wordmark.</desc>
+  <defs>
+    <radialGradient id="ocean" cx="38%" cy="34%" r="75%">
+      <stop offset="0" stop-color="#3f7fb8"/>
+      <stop offset="0.55" stop-color="#1d4f7c"/>
+      <stop offset="1" stop-color="#0b2440"/>
+    </radialGradient>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0.52" stop-color="#05070b" stop-opacity="0"/>
+      <stop offset="0.78" stop-color="#05070b" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#05070b" stop-opacity="0.92"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0.86" stop-color="#8fb8ff" stop-opacity="0"/>
+      <stop offset="0.93" stop-color="#8fb8ff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#8fb8ff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="planet"><circle cx="820" cy="270" r="170"/></clipPath>
+    <path id="dialArc" d="M1003 147 A220 220 0 0 1 1003 393"/>
+  </defs>
+
+  <rect width="1200" height="520" fill="#090b10"/>
+
+  <!-- Stars: a few, faint, and some breathing -->
+  <g fill="#eef0f4">
+    <circle cx="120" cy="60" r="1"/><circle cx="260" cy="420" r="1.2" opacity="0.6"/>
+    <circle cx="410" cy="90" r="0.9" opacity="0.7"/><circle cx="560" cy="470" r="1"/>
+    <circle cx="640" cy="40" r="1.1" opacity="0.5"/><circle cx="1100" cy="80" r="1"/>
+    <circle cx="1150" cy="460" r="1.3" opacity="0.6"/><circle cx="980" cy="500" r="0.9"/>
+    <circle cx="70" cy="300" r="1" opacity="0.5"/><circle cx="350" cy="250" r="0.8" opacity="0.4"/>
+    <circle cx="1060" cy="250" r="1"><animate attributeName="opacity" values="0.2;1;0.2" dur="4s" repeatCount="indefinite"/></circle>
+    <circle cx="700" cy="490" r="1.2"><animate attributeName="opacity" values="1;0.2;1" dur="5s" repeatCount="indefinite"/></circle>
+    <circle cx="180" cy="180" r="1"><animate attributeName="opacity" values="0.3;1;0.3" dur="6s" repeatCount="indefinite"/></circle>
+  </g>
+
+  <!-- The planet -->
+  <circle cx="820" cy="270" r="196" fill="url(#glow)"/>
+  <circle cx="820" cy="270" r="170" fill="url(#ocean)"/>
+  <g clip-path="url(#planet)">
+    <!-- Land, drifting east as the planet turns -->
+    <g fill="#5d7a4e" opacity="0.72">
+      <path d="M640 200c30-30 80-34 104-12 22 20 4 48-16 60-26 16-14 44-40 56-30 14-62-8-66-40-4-26 0-48 18-64z"/>
+      <path d="M760 150c40-14 90-8 110 18 16 22-6 40-34 44-30 4-40 30-70 22-28-8-40-34-26-56 6-12 12-22 20-28z"/>
+      <path d="M840 300c26-8 60 4 70 30 12 30-10 64-40 72-28 8-50-12-52-40-2-26 4-54 22-62z"/>
+      <path d="M940 210c20-10 46-4 56 14 8 16-4 32-20 36-18 4-36-6-40-22-2-12-2-22 4-28z"/>
+      <path d="M520 260c26-10 56 0 66 24 8 22-8 42-30 46-24 4-44-12-46-34-2-16 0-30 10-36z"/>
+      <animateTransform attributeName="transform" type="translate" from="-160 0" to="200 0" dur="36s" repeatCount="indefinite"/>
+    </g>
+    <!-- Meridians sweep across the face, so the sphere reads as turning -->
+    <g fill="none" stroke="#eef0f4" stroke-opacity="0.12" stroke-width="1">
+      <ellipse cx="820" cy="270" rx="170" ry="170"><animate attributeName="rx" values="170;0;170" dur="12s" repeatCount="indefinite"/></ellipse>
+      <ellipse cx="820" cy="270" rx="113" ry="170"><animate attributeName="rx" values="113;0;170;113" dur="12s" repeatCount="indefinite"/></ellipse>
+      <ellipse cx="820" cy="270" rx="57" ry="170"><animate attributeName="rx" values="57;170;0;57" dur="12s" repeatCount="indefinite"/></ellipse>
+      <ellipse cx="820" cy="270" rx="170" ry="40"/>
+      <line x1="650" y1="270" x2="990" y2="270"/>
+    </g>
+    <!-- Night side: day and night where they are -->
+    <rect x="640" y="90" width="360" height="360" fill="url(#night)"/>
+  </g>
+  <circle cx="820" cy="270" r="170" fill="none" stroke="#8fb8ff" stroke-opacity="0.35" stroke-width="1.5"/>
+
+  <!-- You are here -->
+  <g transform="translate(772 238)">
+    <circle r="22" fill="none" stroke="#e9b872" stroke-width="1.2">
+      <animate attributeName="r" values="5;24" dur="3.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.9;0" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle r="5.5" fill="#e9b872" stroke="#090b10" stroke-width="2"/>
+    <rect x="-17" y="-32" width="34" height="18" rx="5" fill="#0f1218" fill-opacity="0.9"/>
+    <text y="-19" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="11" font-weight="600" fill="#eef0f4">You</text>
+  </g>
+
+  <!-- Orbit dial: altitude as an arc around the planet -->
+  <use href="#dialArc" fill="none" stroke="#e9b872" stroke-opacity="0.3" stroke-width="1"/>
+  <g font-family="Segoe UI, system-ui, sans-serif" font-size="12" font-weight="600" letter-spacing="1.4" fill="#7b8394">
+    <text x="1020" y="152">GLOBAL</text>
+    <text x="1047" y="213">CONTINENT</text>
+    <text x="1056" y="274">REGIONAL</text>
+    <text x="1047" y="335">LOCAL</text>
+    <text x="1020" y="396">STREET</text>
+  </g>
+  <circle r="6" fill="#e9b872" stroke="#090b10" stroke-width="3">
+    <animateMotion dur="9s" repeatCount="indefinite" keyPoints="0;0;0.5;0.5;1;1;0" keyTimes="0;0.15;0.3;0.45;0.6;0.8;1" calcMode="spline" keySplines="0 0 1 1;0.4 0 0.2 1;0 0 1 1;0.4 0 0.2 1;0 0 1 1;0.4 0 0.2 1">
+      <mpath href="#dialArc"/>
+    </animateMotion>
+  </circle>
+
+  <!-- Wordmark -->
+  <g font-family="Segoe UI Variable Display, Segoe UI, system-ui, sans-serif">
+    <g transform="translate(80 150)">
+      <path d="M0 40 A42 42 0 0 1 64 6" fill="none" stroke="#e9b872" stroke-width="3" stroke-linecap="round"/>
+      <path d="M12 18 l11 30 l11 -24 l11 24 l11 -30" fill="none" stroke="#eef0f4" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="80" y="262" font-size="40" font-weight="650" letter-spacing="7" fill="#eef0f4" opacity="0">W.E.D.N.E.S.D.A.Y.
+      <animate attributeName="opacity" from="0" to="1" begin="0.2s" dur="1.2s" fill="freeze"/>
+    </text>
+    <text x="82" y="300" font-size="17" fill="#aab1bf" opacity="0">A local intelligence that lives around your planet.
+      <animate attributeName="opacity" from="0" to="1" begin="0.9s" dur="1.2s" fill="freeze"/>
+    </text>
+    <text x="82" y="332" font-size="13" letter-spacing="1.5" fill="#7b8394" opacity="0">LOCAL MODEL  ·  LIVE EARTH  ·  YOUR PERMISSION FIRST
+      <animate attributeName="opacity" from="0" to="1" begin="1.5s" dur="1.2s" fill="freeze"/>
+    </text>
+  </g>
+</svg>

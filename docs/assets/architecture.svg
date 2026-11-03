@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-labelledby="t d">
+  <title id="t">How W.E.D.N.E.S.D.A.Y. fits together</title>
+  <desc id="d">The desktop shell, local core, Ollama model, Windows location and speech, and the Earth server all run on this computer. Only Earth's map and data requests, and features you turn on such as nearby places, reach public providers.</desc>
+  <defs>
+    <path id="shellCore" d="M330 210 H500"/>
+    <path id="coreModel" d="M700 210 H860"/>
+    <path id="coreWin" d="M600 245 V320"/>
+    <path id="shellEarth" d="M230 175 V115"/>
+    </defs>
+  <rect width="1200" height="420" fill="#090b10"/>
+
+  <!-- This computer -->
+  <rect x="30" y="40" width="890" height="350" rx="18" fill="none" stroke="#e9b872" stroke-opacity="0.35" stroke-dasharray="6 6"/>
+  <text x="54" y="372" font-family="Segoe UI, system-ui, sans-serif" font-size="13" letter-spacing="1.2" fill="#e9b872" fill-opacity="0.8">THIS COMPUTER  ·  everything inside this line stays here</text>
+
+  <g font-family="Segoe UI, system-ui, sans-serif" text-anchor="middle">
+    <g>
+      <rect x="130" y="175" width="200" height="70" rx="12" fill="#151922" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="230" y="205" font-size="15" font-weight="600" fill="#eef0f4">Desktop shell</text>
+      <text x="230" y="226" font-size="12" fill="#7b8394">React · Vite · :5173</text>
+    </g>
+    <g>
+      <rect x="500" y="175" width="200" height="70" rx="12" fill="#151922" stroke="#e9b872" stroke-opacity="0.5"/>
+      <text x="600" y="205" font-size="15" font-weight="600" fill="#eef0f4">Local core</text>
+      <text x="600" y="226" font-size="12" fill="#7b8394">FastAPI · 127.0.0.1 only</text>
+    </g>
+    <g>
+      <rect x="760" y="175" width="140" height="70" rx="12" fill="#151922" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="830" y="205" font-size="15" font-weight="600" fill="#eef0f4">Ollama</text>
+      <text x="830" y="226" font-size="12" fill="#7b8394">qwen2.5:7b</text>
+    </g>
+    <g>
+      <rect x="490" y="300" width="220" height="56" rx="12" fill="#151922" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="600" y="324" font-size="14" font-weight="600" fill="#eef0f4">Windows location &amp; speech</text>
+      <text x="600" y="343" font-size="12" fill="#7b8394">read only with your permission</text>
+    </g>
+    <g>
+      <rect x="130" y="60" width="200" height="56" rx="12" fill="#151922" stroke="#ffffff" stroke-opacity="0.08"/>
+      <text x="230" y="84" font-size="14" font-weight="600" fill="#eef0f4">Earth</text>
+      <text x="230" y="103" font-size="12" fill="#7b8394">Cesium · :4173</text>
+    </g>
+    <g>
+      <rect x="950" y="150" width="220" height="110" rx="12" fill="#10131a" stroke="#91bfff" stroke-opacity="0.35"/>
+      <text x="1060" y="182" font-size="14" font-weight="600" fill="#eef0f4">Public providers</text>
+      <text x="1060" y="204" font-size="12" fill="#7b8394">USGS · NASA · GDACS</text>
+      <text x="1060" y="222" font-size="12" fill="#7b8394">CelesTrak · ADS-B · Esri</text>
+      <text x="1060" y="240" font-size="12" fill="#7b8394">OpenStreetMap</text>
+    </g>
+  </g>
+
+  <!-- Connections with traffic -->
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1.5">
+    <use href="#shellCore"/><path d="M700 210 H760"/><use href="#coreWin"/><use href="#shellEarth"/>
+    <path d="M330 88 H1060 V150" stroke="#91bfff" stroke-opacity="0.3" stroke-dasharray="5 5"/>
+    <path d="M700 238 H730 V285 H1000 V260" stroke="#91bfff" stroke-opacity="0.3" stroke-dasharray="5 5"/>
+  </g>
+  <g>
+    <circle r="4" fill="#e9b872"><animateMotion dur="2.4s" repeatCount="indefinite" path="M330 210 H500"/></circle>
+    <circle r="4" fill="#e9b872"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite" path="M500 210 H330"/></circle>
+    <circle r="4" fill="#e9b872"><animateMotion dur="1.6s" repeatCount="indefinite" path="M700 210 H760"/></circle>
+    <circle r="4" fill="#e9b872"><animateMotion dur="2s" repeatCount="indefinite" path="M600 245 V300"/></circle>
+    <circle r="4" fill="#e9b872"><animateMotion dur="1.8s" repeatCount="indefinite" path="M230 175 V116"/></circle>
+    <circle r="3.5" fill="#91bfff"><animateMotion dur="5s" repeatCount="indefinite" path="M1060 150 V88 H330"/></circle>
+    <circle r="3.5" fill="#91bfff"><animateMotion dur="3s" begin="0.8s" repeatCount="indefinite" path="M1000 260 V285 H730 V238 H700"/></circle>
+  </g>
+  <g font-family="Segoe UI, system-ui, sans-serif" font-size="12" fill="#7b8394">
+    <text x="760" y="76">map and live data, straight from providers</text>
+    <text x="760" y="303">world feeds for the assistant</text>
+  </g>
+</svg>
