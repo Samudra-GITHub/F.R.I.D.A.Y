@@ -81,7 +81,7 @@ class ControlMediaTool(BaseTool):
         """Report honest verification limitation.
         
         Windows virtual key dispatch does not return playback state feedback.
-        Per the F.R.I.D.A.Y. engineering blueprint, we never claim verified success
+        Per the W.E.D.N.E.S.D.A.Y. engineering blueprint, we never claim verified success
         without an independent state check.
         """
         return False, (

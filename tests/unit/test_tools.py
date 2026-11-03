@@ -1,6 +1,7 @@
 """Unit tests for fixed tools and result verification."""
 
 import pytest
+from datetime import datetime
 from pathlib import Path
 from backend.friday.tools.time_tool import GetLocalTimeTool
 from backend.friday.tools.workspace_tool import ListWorkspaceTool
@@ -11,11 +12,15 @@ from backend.friday.tools.media_tool import ControlMediaTool
 async def test_get_local_time_tool():
     tool = GetLocalTimeTool()
     output = await tool.execute({})
-    assert isinstance(output, str)
-    assert len(output) > 10
+    parsed = datetime.fromisoformat(output["iso"])
+    # The readable form carries the real weekday, so the model never has to compute one.
+    assert parsed.strftime("%A") in output["display"]
+    assert parsed.strftime("%B") in output["display"]
     verified, details = await tool.verify({}, output)
     assert verified is True
     assert "Deterministic host time retrieved" in details
+    verified, _ = await tool.verify({}, {"iso": "not a date"})
+    assert verified is False
 
 
 @pytest.mark.asyncio

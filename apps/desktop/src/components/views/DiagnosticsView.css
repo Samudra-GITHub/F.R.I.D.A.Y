@@ -1,0 +1,25 @@
+.dgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+.dcard .card__header { padding: var(--sp-3) var(--sp-4); }
+.dlist { padding: var(--sp-2) var(--sp-4) var(--sp-3); display: flex; flex-direction: column; }
+.dlist--cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--sp-6); }
+.drow { display: grid; grid-template-columns: 140px 1fr; gap: var(--sp-3); padding: 7px 0; border-bottom: 1px solid var(--line-1); font-size: var(--fs-13); }
+.drow:last-child { border-bottom: 0; }
+.drow dt { color: var(--text-3); }
+.drow dd { min-width: 0; overflow-wrap: anywhere; }
+.dpath { font-size: var(--fs-11); }
+
+.dstate { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-12); font-weight: 600; white-space: nowrap; }
+.dstate--available { color: var(--success); }
+.dstate--degraded { color: var(--warning); }
+.dstate--unavailable { color: var(--danger); }
+.dstate--disabled, .dstate--not_configured, .dstate--unknown { color: var(--text-3); }
+
+.dtable { width: 100%; border-collapse: collapse; font-size: var(--fs-13); }
+.dtable th { text-align: left; font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--line-1); }
+.dtable td { padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--line-1); vertical-align: top; }
+.dtable tr:last-child td { border-bottom: 0; }
+
+@media (max-width: 900px) {
+  .dgrid, .dlist--cols { grid-template-columns: 1fr; }
+  .dtable th:nth-child(4), .dtable td:nth-child(4), .dtable th:nth-child(5), .dtable td:nth-child(5) { display: none; }
+}

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 230" width="1200" height="230" role="img" aria-labelledby="t d">
+  <title id="t">The intelligence core</title>
+  <desc id="d">Seven states of the W.E.D.N.E.S.D.A.Y. core: idle, listening, thinking, executing, speaking, reviewing and error. Each is a different behaviour of the same W line under the planet's limb.</desc>
+  <defs>
+    <path id="w" d="M22 44 L38 80 L60 50 L82 80 L98 44"/>
+    <path id="limb" d="M12 74A52 52 0 0 1 108 74"/>
+  </defs>
+  <rect width="1200" height="230" fill="#090b10"/>
+  <g font-family="Segoe UI, system-ui, sans-serif" font-size="13" fill="#aab1bf" text-anchor="middle">
+
+    <!-- Idle: the limb fills and empties, like a day passing -->
+    <g transform="translate(26 30)">
+      <path d="M12 74A52 52 0 0 1 108 74" fill="none" stroke="#e9b872" stroke-width="2" stroke-opacity="0.6" stroke-dasharray="160" stroke-dashoffset="100">
+        <animate attributeName="stroke-dashoffset" values="100;0;100" dur="10s" repeatCount="indefinite"/>
+      </path>
+      <use href="#w" fill="none" stroke="#eef0f4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="60" y="160">Idle</text>
+    </g>
+
+    <!-- Listening: the points light from left to right -->
+    <g transform="translate(193 30)">
+      <use href="#limb" fill="none" stroke="#e9b872" stroke-width="2" stroke-opacity="0.45"/>
+      <use href="#w" fill="none" stroke="#eef0f4" stroke-opacity="0.4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <g fill="#e9b872">
+        <circle cx="22" cy="44" r="4"><animate attributeName="opacity" values="0.15;1;0.15" dur="1.5s" begin="0s" repeatCount="indefinite"/></circle>
+        <circle cx="38" cy="80" r="4"><animate attributeName="opacity" values="0.15;1;0.15" dur="1.5s" begin="0.15s" repeatCount="indefinite"/></circle>
+        <circle cx="60" cy="50" r="4"><animate attributeName="opacity" values="0.15;1;0.15" dur="1.5s" begin="0.3s" repeatCount="indefinite"/></circle>
+        <circle cx="82" cy="80" r="4"><animate attributeName="opacity" values="0.15;1;0.15" dur="1.5s" begin="0.45s" repeatCount="indefinite"/></circle>
+        <circle cx="98" cy="44" r="4"><animate attributeName="opacity" values="0.15;1;0.15" dur="1.5s" begin="0.6s" repeatCount="indefinite"/></circle>
+      </g>
+      <text x="60" y="160">Listening</text>
+    </g>
+
+    <!-- Thinking: a short light runs the line -->
+    <g transform="translate(360 30)">
+      <use href="#limb" fill="none" stroke="#91bfff" stroke-width="2" stroke-opacity="0.45"/>
+      <use href="#w" fill="none" stroke="#eef0f4" stroke-opacity="0.3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M22 44 L38 80 L60 50 L82 80 L98 44" pathLength="100" fill="none" stroke="#91bfff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="18 100">
+        <animate attributeName="stroke-dashoffset" values="18;-100;18" dur="3.8s" repeatCount="indefinite"/>
+      </path>
+      <text x="60" y="160">Thinking</text>
+    </g>
+
+    <!-- Executing: drawn stroke by stroke -->
+    <g transform="translate(527 30)">
+      <use href="#limb" fill="none" stroke="#e9b872" stroke-width="2" stroke-opacity="0.45"/>
+      <use href="#w" fill="none" stroke="#eef0f4" stroke-opacity="0.25" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M22 44 L38 80 L60 50 L82 80 L98 44" pathLength="100" fill="none" stroke="#e9b872" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="100" stroke-dashoffset="100">
+        <animate attributeName="stroke-dashoffset" values="100;75;50;25;0" dur="2.4s" calcMode="discrete" repeatCount="indefinite"/>
+      </path>
+      <text x="60" y="160">Executing</text>
+    </g>
+
+    <!-- Speaking: the W moves like a waveform -->
+    <g transform="translate(694 30)">
+      <use href="#limb" fill="none" stroke="#e9b872" stroke-width="2" stroke-opacity="0.45"/>
+      <path fill="none" stroke="#e9b872" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M22 50 L38 72 L60 56 L82 72 L98 50">
+        <animate attributeName="d" values="M22 50 L38 72 L60 56 L82 72 L98 50;M22 40 L38 84 L60 44 L82 84 L98 40;M22 50 L38 72 L60 56 L82 72 L98 50" dur="1.8s" repeatCount="indefinite"/>
+      </path>
+      <text x="60" y="160">Speaking</text>
+    </g>
+
+    <!-- Reviewing: waiting on you, everything still -->
+    <g transform="translate(861 30)">
+      <use href="#limb" fill="none" stroke="#f2a65a" stroke-width="2" stroke-dasharray="4 4"/>
+      <use href="#w" fill="none" stroke="#eef0f4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="60" y="160">Reviewing</text>
+    </g>
+
+    <!-- Error: the line breaks at its centre -->
+    <g transform="translate(1028 30)">
+      <use href="#limb" fill="none" stroke="#f0808a" stroke-width="2" stroke-opacity="0.2"/>
+      <path d="M22 44 L38 80 L49 65 M71 65 L82 80 L98 44" fill="none" stroke="#f0808a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="60" y="160">Error</text>
+    </g>
+  </g>
+</svg>

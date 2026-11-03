@@ -1,0 +1,157 @@
+.shell {
+  --nav-width: 72px;
+  display: grid;
+  grid-template-columns: var(--nav-width) 1fr;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--surface-0);
+  transition: grid-template-columns var(--dur-3) var(--ease-standard);
+}
+.shell[data-nav='expanded'] { --nav-width: 232px; }
+
+.skip-link { position: absolute; left: 8px; top: -48px; z-index: 50; padding: 8px 12px; border-radius: var(--r-md); background: var(--accent); color: var(--text-on-accent); }
+.skip-link:focus { top: 8px; }
+
+/* ---- Navigation rail (72px collapsed / 224px expanded) -------------------------- */
+.rail {
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-4) var(--sp-3);
+  gap: var(--sp-1);
+  background: var(--surface-1);
+  border-right: 1px solid var(--line-1);
+  z-index: 5;
+  overflow: hidden;
+}
+.rail__brand { display: flex; align-items: center; gap: var(--sp-3); height: 40px; padding: 0 11px; margin-bottom: var(--sp-4); }
+.rail__mark { flex: none; width: 26px; height: 26px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.rail__mark-arc { stroke: var(--accent); stroke-width: 3.5; }
+.rail__mark-w { stroke: var(--text-1); stroke-width: 5; }
+.rail__name { font-family: var(--font-heading); font-weight: 600; letter-spacing: 0.06em; font-size: var(--fs-12); white-space: nowrap; }
+.rail__list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.rail__sep { height: 1px; background: var(--line-1); margin: var(--sp-3) 6px; }
+.rail__item {
+  position: relative;
+  display: flex; align-items: center; gap: var(--sp-3);
+  width: 100%; height: 40px; padding: 0 14px;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  font-size: var(--fs-13); font-weight: 550; white-space: nowrap;
+  transition: color var(--dur-1) var(--ease-standard), background var(--dur-1) var(--ease-standard);
+}
+.rail__item svg { flex: none; }
+.rail__item:hover { color: var(--text-1); background: var(--surface-3); }
+.rail__item[aria-current='page'] { color: var(--text-1); background: var(--surface-3); }
+.rail__item[aria-current='page'] svg { color: var(--accent); }
+.rail__item[aria-current='page']::before {
+  content: ''; position: absolute; left: -12px; top: 10px; bottom: 10px; width: 2px;
+  border-radius: 0 2px 2px 0; background: var(--accent);
+}
+.rail__foot { margin-top: auto; display: flex; flex-direction: column; gap: var(--sp-2); }
+.rail__status { display: flex; align-items: center; gap: var(--sp-3); height: 32px; padding: 0 16px; font-size: var(--fs-12); color: var(--text-3); white-space: nowrap; }
+.rail__toggle { align-self: flex-start; margin-left: 4px; }
+.shell[data-nav='collapsed'] .rail__label,
+.shell[data-nav='collapsed'] .rail__name { display: none; }
+
+/* ---- Main column --------------------------------------------------------------- */
+.shell__main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+
+.topbar {
+  display: flex; align-items: center; gap: var(--sp-4);
+  height: 56px; flex: none;
+  padding: 0 var(--sp-6);
+  border-bottom: 1px solid var(--line-1);
+}
+.topbar__title { font-family: var(--font-heading); font-size: var(--fs-16); font-weight: 600; letter-spacing: -0.005em; }
+.topbar__status { margin-left: auto; display: flex; align-items: center; gap: var(--sp-4); font-size: var(--fs-12); color: var(--text-2); min-width: 0; }
+.topbar__item { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.topbar__sep { width: 1px; height: 16px; background: var(--line-2); }
+.topbar__phase { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; color: var(--text-1); white-space: nowrap; }
+.topbar__phase-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-4); transition: background var(--dur-2); }
+.topbar__phase[data-phase='listening'] .topbar__phase-dot { background: var(--accent); animation: dot-pulse 1.2s infinite; box-shadow: 0 0 0 3px var(--accent-soft); }
+.topbar__phase[data-phase='transcribing'] .topbar__phase-dot,
+.topbar__phase[data-phase='thinking'] .topbar__phase-dot { background: var(--info); animation: dot-pulse 1.4s infinite; box-shadow: 0 0 0 3px var(--info-soft); }
+.topbar__phase[data-phase='executing'] .topbar__phase-dot { background: var(--accent); animation: dot-pulse 1s infinite; }
+.topbar__phase[data-phase='speaking'] .topbar__phase-dot { background: #f5dcb4; }
+.topbar__phase[data-phase='reviewing'] .topbar__phase-dot { background: var(--warning); }
+.topbar__phase[data-phase='error'] .topbar__phase-dot { background: var(--danger); }
+.topbar__phase[data-phase='idle'] .topbar__phase-dot { background: var(--success); }
+.topbar__stop kbd { height: 16px; min-width: 0; font-size: 10px; background: transparent; border-color: rgba(240, 128, 138, 0.35); color: inherit; }
+.topbar__stop:disabled { opacity: 0.35; }
+
+.stage { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.stage__view { height: 100%; }
+.stage__loading { height: 100%; display: flex; align-items: center; justify-content: center; gap: var(--sp-3); color: var(--text-3); }
+
+/* ---- Narrow windows: rail becomes a bottom bar --------------------------------- */
+@media (max-width: 720px) {
+  .shell, .shell[data-nav='expanded'] { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  .rail { grid-row: 2; flex-direction: row; padding: 0 var(--sp-1); border-right: 0; border-top: 1px solid var(--line-1); }
+  .rail__brand, .rail__foot, .rail__sep { display: none; }
+  .rail__list { flex-direction: row; flex: 1; justify-content: space-around; padding: var(--sp-1) 0; }
+  .rail__list:last-of-type { flex: 0.75; }
+  .rail__item { flex-direction: column; height: 52px; gap: 2px; padding: 0 6px; font-size: 10px; }
+  .shell[data-nav] .rail__label { display: inline; }
+  .rail__item[aria-current='page']::before { left: 30%; right: 30%; top: -5px; bottom: auto; width: auto; height: 2px; border-radius: 0 0 2px 2px; }
+  .topbar { padding: 0 var(--sp-4); gap: var(--sp-2); }
+  .topbar__item, .topbar__sep { display: none; }
+}
+@media (max-width: 420px) {
+  .rail__item[data-optional] { display: none; }
+  .topbar__stop kbd { display: none; }
+}
+.topbar__mic { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border-radius: var(--r-sm); background: var(--danger-soft); color: var(--danger); font-weight: 600; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .shell { transition: none; } }
+
+/* Earth fills the stage; other screens stay mounted beneath it only when active. */
+.stage__earth { position: absolute; inset: 0; z-index: 1; }
+.stage__earth[hidden] { display: none; }
+.shell[data-tab="earth"] .rail__toggle { display: none; }
+
+/* ---- Location state stays on screen whenever it's relevant ---------------------- */
+.topbar__location { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.topbar__location-open { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 var(--sp-2); border-radius: var(--r-sm); color: var(--text-2); white-space: nowrap; }
+.topbar__location-open:hover { background: var(--surface-3); color: var(--text-1); }
+.topbar__location[data-tone='on'] .topbar__location-open { color: var(--accent); background: var(--accent-soft); }
+.topbar__location[data-tone='warn'] .topbar__location-open { color: var(--warning); }
+@media (max-width: 720px) { .topbar__location-open span { display: none; } }
+
+/* ---- Earth: the whole window is the planet; navigation floats in its space ------- */
+@media (min-width: 721px) {
+  .shell[data-tab='earth'] { grid-template-columns: 1fr; }
+  .shell[data-tab='earth'] .rail {
+    position: absolute; inset: 0 auto 0 0; width: 72px; z-index: 4;
+    background: transparent; border-right: 0;
+    pointer-events: none;
+    transition: opacity 1200ms ease;
+  }
+  .shell[data-tab='earth'] .rail > * > *,
+  .shell[data-tab='earth'] .rail__item { pointer-events: auto; }
+  .shell[data-tab='earth'] .shell__main { position: relative; grid-column: 1; }
+  .shell[data-tab='earth'] .topbar {
+    position: absolute; inset: 0 0 auto 0; z-index: 3;
+    padding-left: 88px;
+    border-bottom: 0;
+    background: linear-gradient(rgba(9, 11, 16, 0.86), rgba(9, 11, 16, 0));
+    pointer-events: none;
+  }
+  .shell[data-tab='earth'] .topbar > * { pointer-events: auto; }
+  .shell[data-tab='earth'] .stage { position: absolute; inset: 0; }
+  .shell[data-tab='earth'][data-quiet='true'] .rail { opacity: 0.25; }
+  .shell[data-tab='earth'] .rail:hover { opacity: 1; transition-duration: 160ms; }
+}
+
+/* ---- Signature transition: screens open out of the planet, Earth opens around you ---- */
+.stage__view.view-enter { animation: view-from-planet 420ms var(--ease-emphasized); }
+.stage__earth:not([hidden]) { animation: earth-arrive 520ms var(--ease-emphasized); }
+@keyframes view-from-planet {
+  from { clip-path: circle(14% at 50% 50%); opacity: 0.2; }
+  to { clip-path: circle(120% at 50% 50%); opacity: 1; }
+}
+@keyframes earth-arrive {
+  from { opacity: 0; transform: scale(0.965); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage__view.view-enter, .stage__earth:not([hidden]) { animation: none; }
+}

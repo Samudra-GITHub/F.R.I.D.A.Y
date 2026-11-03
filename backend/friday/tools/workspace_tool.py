@@ -15,7 +15,7 @@ class ListWorkspaceTool(BaseTool):
     """
     name = "list_workspace"
     description = (
-        "List files and directories within the authorized Friday workspace. "
+        "List files and directories within the authorized Wednesday workspace. "
         "Returns up to a bounded limit of entries. Never traverses outside the workspace."
     )
     required_permission = PermissionType.WORKSPACE_READ

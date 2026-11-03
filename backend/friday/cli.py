@@ -1,4 +1,4 @@
-"""Interactive Command-Line Interface for F.R.I.D.A.Y. Milestone 1.
+"""Interactive Command-Line Interface for W.E.D.N.E.S.D.A.Y. Milestone 1.
 
 Provides terminal interaction with the capability-brokered assistant engine.
 """
@@ -28,7 +28,7 @@ from backend.friday.conversation.orchestrator import ConversationOrchestrator
 
 async def main() -> None:
     print("=" * 60)
-    print(" F.R.I.D.A.Y. — Personal AI Desktop Assistant (Milestone 1)")
+    print(" W.E.D.N.E.S.D.A.Y. — Personal AI Desktop Assistant (Milestone 1)")
     print("=" * 60)
     print(f"Backend Host:      {settings.host}:{settings.port}")
     print(f"Local Model:       {settings.model_name} (via {settings.ollama_base_url})")
@@ -85,7 +85,7 @@ async def main() -> None:
             if not user_input:
                 continue
             if user_input.lower() in ("exit", "quit"):
-                print("\nShutting down F.R.I.D.A.Y. session. Goodbye.")
+                print("\nShutting down W.E.D.N.E.S.D.A.Y. session. Goodbye.")
                 break
             if user_input.lower() == "status":
                 print(f"[Policy Status] Media Allowed: {session_policy.media_control_enabled}")
@@ -93,7 +93,7 @@ async def main() -> None:
                 print(f"[Policy Status] Registered Tools: {[t.name for t in registry.list_tools()]}")
                 continue
 
-            print("FRIDAY is thinking...")
+            print("W.E.D.N.E.S.D.A.Y. is thinking...")
             reply = await orchestrator.run_turn(user_input)
             print(f"\nFRIDAY: {reply}\n")
 

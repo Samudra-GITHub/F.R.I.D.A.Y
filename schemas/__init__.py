@@ -1,4 +1,4 @@
-"""F.R.I.D.A.Y. Schemas module."""
+"""W.E.D.N.E.S.D.A.Y. Schemas module."""
 from schemas.contracts import (
     PermissionType,
     ToolCallProposal,
