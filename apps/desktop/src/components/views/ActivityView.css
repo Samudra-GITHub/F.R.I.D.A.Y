@@ -1,0 +1,27 @@
+.activity__stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
+.stat { padding: var(--sp-4) var(--sp-5); border-radius: var(--r-lg); background: var(--surface-1); border: 1px solid var(--line-1); display: flex; flex-direction: column; gap: 2px; }
+.stat__value { font-family: var(--font-heading); font-size: var(--fs-26); font-weight: 600; letter-spacing: -0.02em; }
+.stat__value--danger { color: var(--danger); }
+.stat__label { font-size: var(--fs-12); color: var(--text-3); }
+
+.activity__loading { padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+
+.timeline__row { display: grid; grid-template-columns: auto 1fr auto; gap: var(--sp-3); align-items: start; padding: var(--sp-3) var(--sp-5); animation: msg-in var(--dur-2) var(--ease-emphasized); }
+@keyframes msg-in { from { opacity: 0; transform: translateY(4px); } }
+.timeline__icon { display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--r-sm); background: var(--surface-3); color: var(--text-2); }
+.tone-ok .timeline__icon { color: var(--success); background: var(--success-soft); }
+.tone-danger .timeline__icon { color: var(--danger); background: var(--danger-soft); }
+.tone-warn .timeline__icon { color: var(--warning); background: var(--warning-soft); }
+.tone-info .timeline__icon { color: var(--info); background: var(--info-soft); }
+.timeline__main { min-width: 0; padding-top: 3px; }
+.timeline__title { font-weight: 550; font-size: var(--fs-13); }
+.timeline__details { color: var(--text-3); font-size: var(--fs-12); margin-top: 2px; overflow-wrap: anywhere; }
+.timeline__side { display: flex; align-items: center; gap: var(--sp-3); padding-top: 3px; font-size: var(--fs-11); color: var(--text-3); }
+.timeline__digest { color: var(--text-4); }
+
+@media (max-width: 720px) {
+  .activity__stats { grid-template-columns: 1fr 1fr 1fr; }
+  .stat { padding: var(--sp-3); }
+  .timeline__row { grid-template-columns: auto 1fr; padding: var(--sp-3) var(--sp-4); }
+  .timeline__side { grid-column: 2; padding-top: 0; }
+}

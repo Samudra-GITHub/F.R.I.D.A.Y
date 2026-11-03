@@ -1,11 +1,11 @@
 <div align="center">
 
-# F.R.I.D.A.Y.
+# W.E.D.N.E.S.D.A.Y.
 
 **Your Personal Intelligence Operating System**
 
 <p align="center">
-  A local-first, privacy-governed personal AI assistant that pairs deterministic OS execution with local neural reasoning. Featuring an interactive 3D World Intelligence globe, continuous Windows geolocation, and zero-paid-API OpenStreetMap spatial awareness, F.R.I.D.A.Y. delivers an auditable personal command center directly on your hardware.
+  A local-first, privacy-governed personal AI assistant that pairs deterministic OS execution with local neural reasoning. Featuring an interactive 3D World Intelligence globe, continuous Windows geolocation, and zero-paid-API OpenStreetMap spatial awareness, W.E.D.N.E.S.D.A.Y. delivers an auditable personal command center directly on your hardware.
 </p>
 
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
@@ -29,9 +29,9 @@
 
 ## Overview
 
-Most desktop AI assistants operate as opaque cloud wrappers that execute arbitrary code or relay chat transcripts to third-party endpoints. **F.R.I.D.A.Y.** rethinks desktop AI from first principles as an auditable, high-reliability personal intelligence platform.
+Most desktop AI assistants operate as opaque cloud wrappers that execute arbitrary code or relay chat transcripts to third-party endpoints. **W.E.D.N.E.S.D.A.Y.** rethinks desktop AI from first principles as an auditable, high-reliability personal intelligence platform.
 
-F.R.I.D.A.Y. decouples **probabilistic neural reasoning** from **deterministic execution authority**:
+W.E.D.N.E.S.D.A.Y. decouples **probabilistic neural reasoning** from **deterministic execution authority**:
 1. **The Neural Model Proposes:** A local large language model (`qwen2.5:7b` hosted on Ollama) parses user intent and constructs structured tool proposals.
 2. **The Capability Broker Decides:** An independent, hardcoded security policy broker evaluates every proposed action against schema definitions, session permissions, and strict filesystem boundaries before any operating system action can execute.
 3. **The Spatial Engine Grounds:** An interactive 3D WebGL globe contextualizes global intelligence, pairing native Windows hardware geolocation with community-driven OpenStreetMap spatial discovery.
@@ -43,9 +43,9 @@ The entire core runs strictly on localhost (`127.0.0.1`), preserving absolute da
 ## Vision & Design Philosophy
 
 - **Local-First by Default:** All core intelligence runs on your hardware. Conversation history, device telemetry, and filesystem access never leave your machine.
-- **Zero Fabrication Policy:** When a service, coordinate fix, weather station, or external provider is unconfigured, offline, or unavailable, F.R.I.D.A.Y. reports its exact status honestly (`no_fix`, `provider_not_configured`, `rate_limited`, `timeout`) rather than hallucinating places, ratings, or telemetry.
+- **Zero Fabrication Policy:** When a service, coordinate fix, weather station, or external provider is unconfigured, offline, or unavailable, W.E.D.N.E.S.D.A.Y. reports its exact status honestly (`no_fix`, `provider_not_configured`, `rate_limited`, `timeout`) rather than hallucinating places, ratings, or telemetry.
 - **Minimalist Cinematic Aesthetics:** Inspired by the restraint of aerospace telemetry HUDs and cinematic science-fiction interfaces. Deep space obsidian canvas, electric cyan holographic energy orb, midnight navy control panels, and violet orbital markers.
-- **Shared Infrastructure Stewardship:** Open-source community APIs (such as OpenStreetMap Nominatim and Overpass) are shared public goods. F.R.I.D.A.Y. honors upstream usage policies with strict client-side rate limiting (<= 1 request/sec), in-flight deduplication, bounded TTL caching, and automatic fallback endpoints.
+- **Shared Infrastructure Stewardship:** Open-source community APIs (such as OpenStreetMap Nominatim and Overpass) are shared public goods. W.E.D.N.E.S.D.A.Y. honors upstream usage policies with strict client-side rate limiting (<= 1 request/sec), in-flight deduplication, bounded TTL caching, and automatic fallback endpoints.
 
 ---
 
@@ -87,7 +87,7 @@ The entire core runs strictly on localhost (`127.0.0.1`), preserving absolute da
 
 ## System Architecture
 
-The following diagram illustrates F.R.I.D.A.Y.'s decoupled, multi-tiered architecture:
+The following diagram illustrates W.E.D.N.E.S.D.A.Y.'s decoupled, multi-tiered architecture:
 
 ```mermaid
 graph TB
@@ -223,7 +223,7 @@ graph TB
 
 ## Prerequisites
 
-Before installing F.R.I.D.A.Y., ensure your workstation meets the following requirements:
+Before installing W.E.D.N.E.S.D.A.Y., ensure your workstation meets the following requirements:
 
 1. **Operating System:** Windows 11 (64-bit) recommended for native location provider; Windows 10 supported with mock/fallback providers.
 2. **Python:** Version `3.11` or `3.12` (64-bit). Verify with:
@@ -248,8 +248,8 @@ Open **Windows PowerShell** and follow these steps:
 
 ### 1. Clone the Repository
 ```powershell
-git clone https://github.com/Samudra-GITHub/F.R.I.D.A.Y.git
-cd F.R.I.D.A.Y
+git clone https://github.com/Samudra-GITHub/W.E.D.N.E.S.D.A.Y.git
+cd W.E.D.N.E.S.D.A.Y.
 ```
 
 ### 2. Configure Python Backend Virtual Environment
@@ -277,7 +277,7 @@ cd ..\..
 
 ## Configuration & Environment Variables
 
-F.R.I.D.A.Y. comes with a template environment configuration file. Create your local `.env` file:
+W.E.D.N.E.S.D.A.Y. comes with a template environment configuration file. Create your local `.env` file:
 
 ```powershell
 Copy-Item .env.example .env
@@ -301,13 +301,13 @@ Copy-Item .env.example .env
 | `MODEL_NAME` | `qwen2.5:7b` | Specific local model identifier executed by Ollama. |
 
 > **Note on OpenStreetMap Usage Policies:**  
-> Free public OpenStreetMap servers are community-supported infrastructure. F.R.I.D.A.Y. enforces Nominatim's strict requirement of no more than 1 request per second and automatically caches results. Do not scrape or use public endpoints for heavy load testing.
+> Free public OpenStreetMap servers are community-supported infrastructure. W.E.D.N.E.S.D.A.Y. enforces Nominatim's strict requirement of no more than 1 request per second and automatically caches results. Do not scrape or use public endpoints for heavy load testing.
 
 ---
 
 ## Running the Application
 
-To run the complete F.R.I.D.A.Y. intelligence system, launch the services in separate PowerShell terminals:
+To run the complete W.E.D.N.E.S.D.A.Y. intelligence system, launch the services in separate PowerShell terminals:
 
 ### Terminal 1: Local Neural Model Engine (Ollama)
 ```powershell
@@ -342,7 +342,7 @@ python -m backend.friday.location.windows_daemon --interval 60
 
 ## Running the Test Suite
 
-F.R.I.D.A.Y. maintains a zero-external-dependency test policy: automated tests strictly use mocked HTTP transports, ensuring that running tests never makes paid API calls or abuses public community servers.
+W.E.D.N.E.S.D.A.Y. maintains a zero-external-dependency test policy: automated tests strictly use mocked HTTP transports, ensuring that running tests never makes paid API calls or abuses public community servers.
 
 ### Run All Backend Python Tests (96 Passing Tests)
 ```powershell
@@ -378,7 +378,7 @@ npm run build
 
 ## Security & Privacy Architecture
 
-F.R.I.D.A.Y. is designed around a zero-trust model between the LLM and the operating system:
+W.E.D.N.E.S.D.A.Y. is designed around a zero-trust model between the LLM and the operating system:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -408,14 +408,14 @@ F.R.I.D.A.Y. is designed around a zero-trust model between the LLM and the opera
    - `PLACES_SEARCH`: Permission to query external enrichment providers.
    The model cannot grant itself permissions or implicitly enable tracking.
 4. **Input Sanitization & Overpass Defense:** Query parameters for nearby places are rigorously sanitized against Overpass QL injection, stripping quotes, backslashes, and semicolon control sequences.
-5. **No Shell Execution:** F.R.I.D.A.Y. intentionally lacks generic shell or code evaluation tools. Actions are limited to deterministic, dedicated adapters.
+5. **No Shell Execution:** W.E.D.N.E.S.D.A.Y. intentionally lacks generic shell or code evaluation tools. Actions are limited to deterministic, dedicated adapters.
 
 ---
 
 ## Known Limitations
 
 - **Windows Geolocation:** The native background location provider uses Windows 11 WinRT APIs. On Linux or macOS, the location service operates in fallback/mock mode.
-- **Shared Public API Capacity:** OpenStreetMap public servers are community-supported. Heavy query bursts will trigger HTTP 429 rate limits, which F.R.I.D.A.Y. handles gracefully via exponential backoff and secondary endpoint fallback.
+- **Shared Public API Capacity:** OpenStreetMap public servers are community-supported. Heavy query bursts will trigger HTTP 429 rate limits, which W.E.D.N.E.S.D.A.Y. handles gracefully via exponential backoff and secondary endpoint fallback.
 - **Ratings in OSM:** OpenStreetMap data does not provide standardized user ratings. In accordance with our Zero Fabrication policy, rating badges are omitted for OSM places rather than invented.
 - **Telemetry Feeds:** Atmospheric weather and seismic telemetry on the 3D globe currently utilize sample fixture datasets; live multi-source satellite telemetry streaming is scheduled for Phase 3.
 
@@ -466,11 +466,11 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ### Data & Attribution Acknowledgements
 - **OpenStreetMap Data:** Geocoding and point-of-interest data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors. OpenStreetMap data is licensed under the [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/).
-- **Inspiration:** Inspired by F.R.I.D.A.Y. from the Marvel Cinematic Universe created by Marvel Studios.
+- **Inspiration:** Inspired by W.E.D.N.E.S.D.A.Y. from the Marvel Cinematic Universe created by Marvel Studios.
 - **Open Source Ecosystem:** Powered by [FastAPI](https://fastapi.tiangolo.com/), [Ollama](https://ollama.com/), [Three.js](https://threejs.org/), and [globe.gl](https://globe.gl/).
 
 ---
 
 <div align="center">
-  <sub>Engineered by <a href="https://github.com/Samudra-GITHub">Samudra Kar</a> • F.R.I.D.A.Y. Intelligence System</sub>
+  <sub>Engineered by <a href="https://github.com/Samudra-GITHub">Samudra Kar</a> • W.E.D.N.E.S.D.A.Y. Intelligence System</sub>
 </div>

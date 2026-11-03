@@ -1,4 +1,4 @@
-"""Abstract Base Class for F.R.I.D.A.Y. tools."""
+"""Abstract Base Class for W.E.D.N.E.S.D.A.Y. tools."""
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, Tuple

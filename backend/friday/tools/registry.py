@@ -1,4 +1,4 @@
-"""Fixed Tool Registry for F.R.I.D.A.Y."""
+"""Fixed Tool Registry for W.E.D.N.E.S.D.A.Y."""
 
 from typing import Any, Dict, List, Optional
 from backend.friday.tools.base import BaseTool

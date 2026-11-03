@@ -12,6 +12,12 @@ class ModelConnectionError(RuntimeError):
     pass
 
 
+class ModelTimeoutError(RuntimeError):
+    """Raised when the local model inference times out."""
+    pass
+
+
+
 class OllamaAdapter(BaseModelAdapter):
     """Model adapter communicating with a local Ollama instance."""
 
@@ -33,6 +39,17 @@ class OllamaAdapter(BaseModelAdapter):
                 return res.status_code == 200
         except Exception:
             return False
+
+    async def list_models(self) -> Optional[List[str]]:
+        """Names of locally installed models, or None when Ollama is unreachable."""
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                res = await client.get(f"{self.base_url}/api/tags")
+            if res.status_code != 200:
+                return None
+            return [m.get("name", "") for m in res.json().get("models", []) if m.get("name")]
+        except Exception:
+            return None
 
     def _convert_messages(self, messages: List[ChatMessage]) -> List[Dict[str, Any]]:
         """Convert internal ChatMessage schemas to Ollama API message payloads."""
@@ -78,6 +95,9 @@ class OllamaAdapter(BaseModelAdapter):
                         f"Ollama returned HTTP {response.status_code}: {response.text[:200]}"
                     )
                 data = response.json()
+        except httpx.TimeoutException as exc:
+            # Ollama is reachable but slow; reporting this as an outage would be misleading.
+            raise ModelTimeoutError(f"The model did not finish within {self.timeout:.0f} s") from exc
         except httpx.RequestError as exc:
             raise ModelConnectionError(f"Could not connect to Ollama at {self.base_url}: {exc}") from exc
 

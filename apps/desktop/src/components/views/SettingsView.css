@@ -1,0 +1,2 @@
+.setting__path { max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
+code.setting__value { font-size: var(--fs-12); padding: 3px 7px; border-radius: var(--r-xs); background: var(--surface-2); border: 1px solid var(--line-1); color: var(--text-2); }

@@ -1,0 +1,55 @@
+/* The intelligence core. One line, the W, with a distinct behaviour for each state. */
+.core { --core-color: var(--accent); display: inline-flex; flex-direction: column; align-items: center; gap: var(--sp-3); }
+.core__mark { width: var(--core-size); height: var(--core-size); overflow: visible; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.core__limb { stroke: var(--core-color); stroke-width: 1.5; opacity: 0.45; transition: stroke var(--dur-3), opacity var(--dur-3); }
+.core__w { stroke: var(--text-1); stroke-width: 4; transition: stroke var(--dur-3), opacity var(--dur-3); }
+.core__trace { stroke: var(--core-color); stroke-width: 4.5; stroke-dasharray: 18 100; stroke-dashoffset: 18; opacity: 0; }
+.core__nodes circle { fill: var(--core-color); opacity: 0; transform-box: fill-box; transform-origin: center; }
+.core__label { font-size: var(--fs-13); color: var(--text-2); }
+
+/* Idle: the limb slowly fills and empties, like a day passing. */
+.core[data-phase='idle'] .core__limb { stroke-dasharray: 100; animation: core-limb 14s ease-in-out infinite; }
+
+/* Listening: the W's points light from left to right, open to what's coming in. */
+.core[data-phase='listening'] .core__w { opacity: 0.45; }
+.core[data-phase='listening'] .core__nodes circle { animation: core-node 1.5s ease-in-out infinite; }
+.core[data-phase='listening'] .core__nodes circle:nth-child(2) { animation-delay: 0.14s; }
+.core[data-phase='listening'] .core__nodes circle:nth-child(3) { animation-delay: 0.28s; }
+.core[data-phase='listening'] .core__nodes circle:nth-child(4) { animation-delay: 0.42s; }
+.core[data-phase='listening'] .core__nodes circle:nth-child(5) { animation-delay: 0.56s; }
+
+/* Thinking and transcribing: a short light runs the line, back and forth. */
+.core:is([data-phase='thinking'], [data-phase='transcribing']) { --core-color: var(--info); }
+.core:is([data-phase='thinking'], [data-phase='transcribing']) .core__w { opacity: 0.3; }
+.core:is([data-phase='thinking'], [data-phase='transcribing']) .core__trace { opacity: 1; animation: core-trace 1.9s ease-in-out infinite alternate; }
+
+/* Executing: the line is drawn stroke by stroke, one deliberate step at a time. */
+.core[data-phase='executing'] .core__w { opacity: 0.25; }
+.core[data-phase='executing'] .core__trace { opacity: 1; stroke-dasharray: 100; stroke-dashoffset: 100; animation: core-draw 2.4s steps(4, end) infinite; }
+
+/* Speaking: the W moves like a waveform, its centre rising and falling. */
+.core[data-phase='speaking'] .core__w { stroke: var(--core-color); animation: core-speak 0.9s ease-in-out infinite alternate; }
+
+/* Reviewing: waiting on you. Everything still, the limb broken into a dashed line. */
+.core[data-phase='reviewing'] { --core-color: var(--warning); }
+.core[data-phase='reviewing'] .core__limb { stroke-dasharray: 3 3; opacity: 0.9; }
+
+/* Error: the line breaks at its centre, and nothing moves. */
+.core[data-phase='error'] { --core-color: var(--danger); }
+.core[data-phase='error'] .core__w { stroke: var(--danger); stroke-dasharray: 34 32 34; }
+.core[data-phase='error'] .core__limb { opacity: 0.2; }
+
+@keyframes core-limb { 0%, 100% { stroke-dashoffset: 62; } 50% { stroke-dashoffset: 0; } }
+@keyframes core-node { 0%, 100% { opacity: 0.15; } 40% { opacity: 1; } }
+@keyframes core-trace { from { stroke-dashoffset: 18; } to { stroke-dashoffset: -100; } }
+@keyframes core-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes core-speak {
+  from { d: path('M22 50 L38 72 L60 56 L82 72 L98 50'); }
+  to { d: path('M22 40 L38 84 L60 44 L82 84 L98 40'); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .core * { animation: none !important; }
+  .core[data-phase='listening'] .core__nodes circle { opacity: 1; }
+  .core:is([data-phase='thinking'], [data-phase='transcribing'], [data-phase='executing']) .core__w { opacity: 1; stroke: var(--core-color); }
+}

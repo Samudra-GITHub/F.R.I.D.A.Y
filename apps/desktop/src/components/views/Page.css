@@ -1,0 +1,30 @@
+/* Shared layout for document-style screens (Activity, Memory, Access, Settings). */
+.page { height: 100%; overflow-y: auto; }
+.page__inner { max-width: 980px; margin: 0 auto; padding: var(--sp-8) var(--sp-6) var(--sp-12); display: flex; flex-direction: column; gap: var(--sp-6); }
+.page__header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--sp-4); flex-wrap: wrap; }
+.page__title { font-family: var(--font-heading); font-size: var(--fs-26); font-weight: 600; letter-spacing: -0.015em; }
+.page__lede { margin-top: var(--sp-1); color: var(--text-2); max-width: 64ch; }
+.page__actions { display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap; }
+
+.toolbar { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+
+.list { list-style: none; display: flex; flex-direction: column; }
+.list > li + li { border-top: 1px solid var(--line-1); }
+
+.setting {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-2) var(--sp-6); align-items: center;
+  padding: var(--sp-4) var(--sp-5);
+}
+.setting + .setting { border-top: 1px solid var(--line-1); }
+.setting__label { font-weight: 550; font-size: var(--fs-14); }
+.setting__hint { color: var(--text-3); font-size: var(--fs-12); margin-top: 2px; max-width: 62ch; }
+.setting__control { display: flex; align-items: center; gap: var(--sp-2); justify-self: end; }
+.setting__control .field { min-width: 240px; }
+.setting__value { font-size: var(--fs-13); color: var(--text-2); text-align: right; }
+
+@media (max-width: 720px) {
+  .page__inner { padding: var(--sp-5) var(--sp-4) var(--sp-10); }
+  .setting { grid-template-columns: 1fr; }
+  .setting__control { justify-self: stretch; }
+  .setting__control .field { min-width: 0; }
+}

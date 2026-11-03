@@ -1,0 +1,13 @@
+.consent__label { display: flex; gap: var(--sp-3); align-items: flex-start; }
+.consent__icon { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: var(--r-md); background: var(--surface-3); color: var(--text-3); transition: background var(--dur-2), color var(--dur-2); }
+.consent__icon.is-on { background: var(--accent-soft); color: var(--accent); }
+
+.tool { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-4); padding: var(--sp-3) var(--sp-5); align-items: start; }
+.tool__name { font-size: var(--fs-13); color: var(--text-1); }
+.tool__desc { color: var(--text-2); font-size: var(--fs-13); margin-top: 4px; max-width: 70ch; }
+.tool__params { color: var(--text-3); font-size: var(--fs-11); margin-top: 4px; }
+.tool__perm { padding-top: 3px; white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .tool { grid-template-columns: 1fr; gap: var(--sp-1); padding: var(--sp-3) var(--sp-4); }
+}

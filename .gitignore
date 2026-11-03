@@ -17,6 +17,7 @@ htmlcov/
 # Environment and secrets
 .env
 .env.*
+!.env.example
 *.local
 secrets/
 
@@ -33,8 +34,20 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 
-# F.R.I.D.A.Y. runtime artifacts
+# W.E.D.N.E.S.D.A.Y. runtime artifacts
 FridayWorkspace/
 logs/
+*.log
 *.sqlite3
 *.db
+
+# Node.js and frontend build artifacts
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+
+# Upstream clone with its own git history (github.com/bilawalsidhu/gods-eye-view)
+apps/gods-eye-view/

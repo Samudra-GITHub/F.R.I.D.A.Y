@@ -1,0 +1,23 @@
+.memory__composer { padding: var(--sp-4) var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-3); }
+.memory__kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.memory__search { position: relative; flex: 1; max-width: 360px; }
+.memory__search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); pointer-events: none; }
+.memory__search .field { padding-left: 32px; }
+
+.memory__item { display: grid; grid-template-columns: 92px 1fr auto; gap: var(--sp-4); align-items: start; padding: var(--sp-4) var(--sp-5); }
+.memory__kind { justify-self: start; margin-top: 2px; }
+.memory__kind--preference, .memory__kind--profile { background: var(--accent-soft); color: var(--accent); }
+.memory__kind--project, .memory__kind--decision { background: var(--info-soft); color: var(--info); }
+.memory__kind--procedure { background: var(--warning-soft); color: var(--warning); }
+.memory__main { min-width: 0; }
+.memory__content { font-size: var(--fs-14); line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.memory__meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; font-size: var(--fs-11); color: var(--text-3); }
+.memory__actions { display: flex; gap: 2px; opacity: 0.6; transition: opacity var(--dur-1); }
+.memory__item:hover .memory__actions, .memory__actions:focus-within { opacity: 1; }
+
+@media (max-width: 720px) {
+  .memory__item { grid-template-columns: 1fr auto; padding: var(--sp-3) var(--sp-4); }
+  .memory__kind { grid-column: 1 / -1; }
+  .memory__actions { opacity: 1; }
+}
