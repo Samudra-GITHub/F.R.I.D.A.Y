@@ -27,7 +27,13 @@ Local language model · Real public data · Nothing happens without your permiss
 
 W.E.D.N.E.S.D.A.Y. is a desktop assistant for Windows 11. You talk to it, or type, and it answers with a language model running on your own machine through [Ollama](https://ollama.com/). It can use tools, such as reading the time, listing your workspace, checking earthquakes or the weather, and finding nearby places, but each one is checked by a capability broker, and anything with consequences waits for your approval.
 
-Around it sits **Earth**: a full 3D globe showing live public data. It opens on the whole planet, lit by the real sun, and moves to wherever you're exploring.
+Around it sits **World**: a full 3D globe showing live public data. It opens on the whole planet, lit by the real sun, and moves to wherever you're exploring. You can ask it questions in plain language, step back through the past month, follow what's in orbit, and point at any place to ask what happened there.
+
+| Screen | What it does |
+|---|---|
+| **Mind** | The assistant: conversation, voice, approvals. |
+| **World** | The living Earth, with three modes: **Live**, **Time** (history playback and comparison) and **Orbit** (satellites, aircraft, ships). |
+| **Pulse** | A briefing of significant records, each with its source and time, which the local model can summarize on request. |
 
 ## A living Earth
 
@@ -50,6 +56,19 @@ Live aircraft, about 800 tracked satellites, the past day's earthquakes from USG
 
 </details>
 
+## Ask the Earth
+
+Type or say a question on the World screen, such as *"Show earthquakes above magnitude 4 today"*. The local model picks a tool, and the records it fetches go to the globe as a small, typed request (show these records, turn on this layer, focus here).
+
+- **Earth confirms, not the model.** Each request is checked three times (backend, app, globe) and anything outside the contract is refused. The answer panel says *Waiting for Earth to confirm* until the globe reports back, then marks each request done or failed.
+- **You can see how it was read.** The panel shows the tool and its arguments, the records as a clickable list, and every source with its retrieval time.
+- **Invented records are flagged.** The model can write a convincing earthquake no source returned; every one the answer names is checked against the real records, and a warning appears above the answer if one doesn't match.
+- **No code from the model.** It can't send scripts, URLs or commands to the globe; only the fixed list of actions exists.
+
+**What happened here?** Press it on the globe, then click anywhere. You get the current weather there and every record from the past 7 days whose own coordinates fall within 250 km, with the sources consulted and any that couldn't be reached. Country-wide reports are never pinned to the point.
+
+**Time.** Pick a period of up to 92 days and a minimum magnitude, then play it back day by day or compare it with another period. Records come from the USGS earthquake catalogue and NASA EONET archives; a missing archive is listed as missing, never shown as a quiet month.
+
 ## The intelligence core
 
 The assistant's identity is a single line, the **W**, under the curve of the planet. Each state is a different behaviour of that one line, so you can read it at a glance, even without colour.
@@ -63,6 +82,8 @@ The assistant's identity is a single line, the **W**, under the curve of the pla
 | **Idle** | Ready. The limb slowly fills and empties, like a day passing. |
 | **Listening** | The microphone is open while you hold the button. |
 | **Thinking** | The local model is working. |
+| **Retrieving** | A tool is fetching data. Two lights travel in along the line. |
+| **Waiting for approval** | An action needs your yes. The line holds still and its ends pulse. |
 | **Executing** | An action you approved is running. |
 | **Speaking** | Reading the answer aloud, if you turned speech on. |
 | **Reviewing** | A transcript is waiting for you to send or discard it. |
@@ -157,7 +178,7 @@ npm --prefix apps/desktop run build
 npm --prefix apps/gods-eye-view test
 ```
 
-At the last full run: backend 207 passed; desktop 41 passed, with a clean type check and build; Earth 9,114 passed, 11 skipped, none failed.
+At the last full run: backend 232 passed; desktop 45 passed, with a clean type check and build; Earth 9,117 passed and 11 skipped of 9,130. Two timing tests failed under load and passed when run alone; see [verification](docs/overhaul/verification.md).
 
 </details>
 
@@ -170,10 +191,12 @@ At the last full run: backend 207 passed; desktop 41 passed, with a clean type c
 - the seven states of the core, including **executing** while a tool runs
 - the redesigned Activity, Memory, Security, and Settings screens, and the phone layout
 - what happens when things go wrong: a stopped backend, denied location permission (simulated), a graphics (WebGL) failure, plus the Cyber layout and the cockpit view
+- Ask the Earth with the real local model, Pulse with Show on Earth, Time playback, Orbit with Follow the ISS, and What happened here?
 
 **Not yet verified:**
 - voice recognition on a real microphone
 - frame rate on a dedicated graphics card
+- Ask the Earth replies on a GPU: on this machine Ollama finds no NVIDIA GPU, so a question takes about 6 minutes on the CPU
 - live ships, which need an AISStream key
 
 More detail is in [docs/overhaul](docs/overhaul).

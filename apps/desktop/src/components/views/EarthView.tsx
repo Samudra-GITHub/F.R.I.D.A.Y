@@ -2,6 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '../ui/Icon';
 import { useLocationAwareness } from '../../context/LocationProvider';
 import { EARTH_FOCUS_EVENT, earthFailureAdvice, takeEarthFocus } from '../../services/earthLocation';
+import { recordBatchResults, takeWaitingBatches, useEarthQueue } from '../../services/earthActions';
+import { useEarthMode } from '../../services/earthMode';
+import { AskEarth } from '../earth/AskEarth';
+import { TimeMachine } from '../earth/TimeMachine';
+import { OrbitPanel } from '../earth/OrbitPanel';
+import { InvestigatePanel, InvestigationPoint } from '../earth/InvestigatePanel';
 import './EarthView.css';
 
 /**
@@ -23,6 +29,9 @@ export const EarthView: React.FC<{ active: boolean; onQuietChange: (quiet: boole
   const { view, status: locationStatus, locateOnce } = useLocationAwareness();
   const [frameReady, setFrameReady] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  const [investigation, setInvestigation] = useState<InvestigationPoint | null>(null);
+  const mode = useEarthMode();
+  const queue = useEarthQueue();
   const [frameKey, setFrameKey] = useState(0);
   const askedOnce = useRef(false);
 
@@ -63,6 +72,13 @@ export const EarthView: React.FC<{ active: boolean; onQuietChange: (quiet: boole
       if (event.origin !== EARTH_ORIGIN || event.source !== frame.current?.contentWindow) return;
       if (event.data?.type === 'gev:ready') setFrameReady(true);
       else if (event.data?.type === 'wednesday:earth-failed') setFailure(String(event.data.message ?? 'Unknown error'));
+      else if (event.data?.type === 'wednesday:action-results') recordBatchResults(String(event.data.batchId ?? ''), event.data.results);
+      else if (event.data?.type === 'wednesday:investigate') {
+        const { latitude, longitude, radius_km } = event.data;
+        if (Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180) {
+          setInvestigation({ latitude, longitude, radius_km: Math.min(1000, Math.max(10, Number(radius_km) || 250)) });
+        }
+      }
       else if (event.data?.type === 'wednesday:locate-request') void locateOnce();
       else if (event.data?.type === 'wednesday:quiet') onQuietChange(event.data.quiet === true);
     };
@@ -96,6 +112,14 @@ export const EarthView: React.FC<{ active: boolean; onQuietChange: (quiet: boole
       label,
     });
   }, [frameReady, send, position?.latitude, position?.longitude, fresh, approximate, label]);
+
+  // Earth actions wait here until the frame can take them; Earth answers with what happened.
+  useEffect(() => {
+    if (!frameReady) return;
+    for (const batch of takeWaitingBatches()) {
+      send({ type: 'wednesday:actions', batchId: batch.id, actions: batch.actions });
+    }
+  }, [frameReady, queue, send]);
 
   // "Show on Earth" from another screen waits here until Earth can take it.
   useEffect(() => {
@@ -171,6 +195,14 @@ export const EarthView: React.FC<{ active: boolean; onQuietChange: (quiet: boole
           allow="fullscreen; clipboard-write; microphone; geolocation"
           onLoad={() => setStatus('ready')}
         />
+      )}
+      {status === 'ready' && (
+        <>
+          {mode === 'time' && <TimeMachine />}
+          {mode === 'orbit' && <OrbitPanel />}
+          {investigation && <InvestigatePanel point={investigation} onClose={() => setInvestigation(null)} />}
+          <AskEarth />
+        </>
       )}
     </div>
   );

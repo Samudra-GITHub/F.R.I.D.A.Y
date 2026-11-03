@@ -5,6 +5,7 @@ import { ChatMessageItem, PendingApproval, ToolExecutionSummary } from '../../ty
 import { Markdown } from '../ui/Markdown';
 import { Icon } from '../ui/Icon';
 import { Presence } from '../ui/Presence';
+import { UnmatchedNotice } from '../ui/UnmatchedNotice';
 import './AssistantView.css';
 
 const SUGGESTIONS = [
@@ -195,6 +196,7 @@ const Message: React.FC<{ msg: ChatMessageItem; onRetry?: () => void; onDecide?:
       <div className="msg__avatar" aria-hidden="true" />
       <div className="msg__body">
         <StatusNotice msg={msg} />
+        <UnmatchedNotice mentions={msg.unmatchedMentions} />
         {msg.status !== 'network_error' && msg.status !== 'ollama_unavailable' && (
           <div className="msg__text">
             <Markdown text={msg.content} />
@@ -238,7 +240,7 @@ const Message: React.FC<{ msg: ChatMessageItem; onRetry?: () => void; onDecide?:
   );
 };
 
-const TranscriptReview: React.FC<{ onSend: (text: string) => void }> = ({ onSend }) => {
+export const TranscriptReview: React.FC<{ onSend: (text: string) => void }> = ({ onSend }) => {
   const { pending, setPendingText, discardPending, playPendingAudio } = useVoice();
   if (!pending) return null;
   const r = pending.result;
@@ -287,7 +289,7 @@ const TranscriptReview: React.FC<{ onSend: (text: string) => void }> = ({ onSend
   );
 };
 
-const MicButton: React.FC = () => {
+export const MicButton: React.FC = () => {
   const { isRecording, phase, startRecording, stopRecording, readLevel } = useVoice();
   const ref = useRef<HTMLButtonElement>(null);
 

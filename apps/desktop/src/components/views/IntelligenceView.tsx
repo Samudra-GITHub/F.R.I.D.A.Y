@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Icon, IconName } from '../ui/Icon';
 import { PageHero } from '../ui/PageHero';
+import { Briefing } from '../intelligence/Briefing';
 import { fetchDisasters, fetchEarthquakes, fetchNaturalEvents, fetchWorldNews } from '../../services/worldApi';
 import { ago, requestEarthFocus } from '../../services/earthLocation';
 import { FeedEnvelope } from '../../types/intelligence';
@@ -180,8 +181,8 @@ export const IntelligenceView: React.FC<{ onOpenEarth: () => void }> = ({ onOpen
     <div className="page">
       <div className="page__inner intel">
         <PageHero
-          kicker="Public sources"
-          title="Intelligence"
+          kicker="Global intelligence"
+          title="Pulse"
           lede="What’s happening in the world. Each feed shows who published it and when it was retrieved, and says so when it can’t be reached."
           stats={FEEDS.map((f) => ({ label: f.title, value: feeds[f.id] ? feeds[f.id]!.items.length : '–' }))}
           actions={
@@ -190,6 +191,8 @@ export const IntelligenceView: React.FC<{ onOpenEarth: () => void }> = ({ onOpen
             </button>
           }
         />
+        <Briefing onOpenEarth={onOpenEarth} />
+        <h2 className="intel-feeds-h">All feeds</h2>
         <div className="intel-grid">
           {FEEDS.map((meta) => (
             <FeedColumn

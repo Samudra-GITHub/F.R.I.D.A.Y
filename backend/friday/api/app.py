@@ -42,6 +42,9 @@ from backend.friday.location.service import LocationService
 from backend.friday.api.location_router import router as location_router, location_service
 from backend.friday.api.world_router import router as world_router, world_service
 from backend.friday.conversation.orchestrator import ConversationOrchestrator
+from backend.friday.tools.earth_tools import ControlEarthTool, GetAircraftNearbyTool
+from backend.friday.api import earth_router as earth_module
+from backend.friday.api.earth_router import router as earth_router
 from backend.friday.memory import MEMORY_KINDS, MemoryStore
 
 
@@ -67,9 +70,12 @@ tool_registry.register(GetWeatherTool(world_service=world_service))
 tool_registry.register(GetNaturalEventsTool(world_service=world_service))
 tool_registry.register(GetDisasterAlertsTool(world_service=world_service))
 tool_registry.register(GetWorldStatusTool(world_service=world_service))
+tool_registry.register(ControlEarthTool())
+tool_registry.register(GetAircraftNearbyTool())
 
 # Configure initial allowed permissions
-initial_permissions = {PermissionType.SYSTEM_TIME, PermissionType.WORKSPACE_READ}
+# Earth view requests only change what the local screen shows, so they're always allowed.
+initial_permissions = {PermissionType.SYSTEM_TIME, PermissionType.WORKSPACE_READ, PermissionType.EARTH_VIEW}
 if settings.location_read_enabled:
     initial_permissions.add(PermissionType.LOCATION_READ)
 if settings.places_search_enabled:
@@ -103,6 +109,11 @@ orchestrator = ConversationOrchestrator(
     max_turns=settings.max_turns_per_request,
     max_calls_per_turn=settings.max_tool_calls_per_turn,
     memory_store=memory_store,
+)
+earth_module.configure(
+    world_service=world_service,
+    model_adapter=ollama_adapter,
+    places_allowed=lambda: session_policy.places_search_enabled,
 )
 
 
@@ -149,6 +160,8 @@ app.add_middleware(
 app.include_router(location_router)
 app.include_router(location_router, prefix="/api")
 app.include_router(world_router)
+app.include_router(earth_router)
+app.include_router(earth_router, prefix="/api")
 app.include_router(world_router, prefix="/api")
 app.include_router(voice_router)
 app.include_router(voice_router, prefix="/api")

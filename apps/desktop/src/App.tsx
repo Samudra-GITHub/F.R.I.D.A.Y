@@ -14,12 +14,13 @@ import { SettingsView } from './components/views/SettingsView';
 import { DiagnosticsView } from './components/views/DiagnosticsView';
 import { EarthView } from './components/views/EarthView';
 import { IntelligenceView } from './components/views/IntelligenceView';
+import { setEarthMode, useEarthMode, EarthMode } from './services/earthMode';
 import './App.css';
 
 const NAV: { id: NavTab; label: string; icon: IconName; title: string; group: 'main' | 'system' }[] = [
-  { id: 'assistant', label: 'Assistant', icon: 'assistant', title: 'Assistant', group: 'main' },
-  { id: 'earth', label: 'Earth', icon: 'earth', title: 'Earth', group: 'main' },
-  { id: 'intelligence', label: 'Intelligence', icon: 'sparkle', title: 'Intelligence', group: 'main' },
+  { id: 'assistant', label: 'Mind', icon: 'assistant', title: 'Mind', group: 'main' },
+  { id: 'earth', label: 'World', icon: 'earth', title: 'World', group: 'main' },
+  { id: 'intelligence', label: 'Pulse', icon: 'sparkle', title: 'Pulse', group: 'main' },
   { id: 'activity', label: 'Activity', icon: 'activity', title: 'Activity', group: 'main' },
   { id: 'memory', label: 'Memory', icon: 'memory', title: 'Memory', group: 'main' },
   { id: 'tools', label: 'Security', icon: 'shield', title: 'Security', group: 'system' },
@@ -55,6 +56,7 @@ export const App: React.FC = () => {
   const { backend, health, pendingSince, emergencyStop } = useApp();
   const voice = useVoice();
   const location = useLocationAwareness();
+  const earthMode = useEarthMode();
   const [earthQuiet, setEarthQuiet] = useState(false);
   const phase = useAssistantPhase();
   const busy = pendingSince !== null || voice.isRecording || voice.isSpeaking;
@@ -153,6 +155,15 @@ export const App: React.FC = () => {
       <div className="shell__main">
         <header className="topbar">
           <h1 className="topbar__title">{currentTitle}</h1>
+          {tab === 'earth' && (
+            <div className="topbar__modes" role="group" aria-label="World mode">
+              {(['live', 'time', 'orbit'] as EarthMode[]).map((m) => (
+                <button key={m} type="button" className="topbar__mode" aria-pressed={earthMode === m} onClick={() => setEarthMode(m)}>
+                  {m === 'live' ? 'Live' : m === 'time' ? 'Time' : 'Orbit'}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="topbar__status" role="status">
             {voice.isRecording && (
               <span className="topbar__mic" title="The microphone is recording">

@@ -3454,10 +3454,10 @@ index d10e571..cf1c2e8 100644
    );
 diff --git a/src/app/wednesdayEarth.js b/src/app/wednesdayEarth.js
 new file mode 100644
-index 0000000..77dfd73
+index 0000000..3e37352
 --- /dev/null
 +++ b/src/app/wednesdayEarth.js
-@@ -0,0 +1,706 @@
+@@ -0,0 +1,912 @@
 +/**
 + * W.E.D.N.E.S.D.A.Y. Earth: the planet as a living environment.
 + *
@@ -3474,6 +3474,7 @@ index 0000000..77dfd73
 +import { msg, t } from '../i18n/index.js';
 +import { EARTHQUAKE_OVERLAY_SOURCE_ID } from '../layers/earthquakes/model.js';
 +import { hitTestWorldOverlay } from '../overlays/worldOverlay.js';
++import { createRecordLayer, recordFacts, RECORD_GROUPS } from './wednesdayRecords.js';
 +import {
 +  holdContinuousRender,
 +  releaseContinuousRender,
@@ -3484,6 +3485,70 @@ index 0000000..77dfd73
 +export const LOCATE_REQUEST_MESSAGE = 'wednesday:locate-request';
 +export const VISIBILITY_MESSAGE = 'wednesday:visibility';
 +export const QUIET_MESSAGE = 'wednesday:quiet';
++export const ACTIONS_MESSAGE = 'wednesday:actions';
++export const ACTION_RESULTS_MESSAGE = 'wednesday:action-results';
++export const INVESTIGATE_MESSAGE = 'wednesday:investigate';
++
++const PRESET_IDS = ['global', 'continent', 'regional', 'local', 'street'];
++/** The shell's layer names, mapped to this app's layer ids. Nothing else can be toggled. */
++export const LAYER_IDS = Object.freeze({
++  earthquakes: 'earthquakes',
++  flights: 'flights',
++  satellites: 'satellites',
++  military: 'military',
++  vessels: 'ais-live-vessels',
++  fires: 'fire-perimeters',
++  cyclones: 'weather-cyclones',
++  weather: 'weather-radar',
++});
++const TRACK_QUERY = /^[A-Za-z0-9 ()/.\-]{1,40}$/;
++const INVESTIGATE_RADIUS_M = 250000;
++
++/**
++ * Check one action from the shell before running it. Returns null for anything that
++ * isn't exactly one of the allowed shapes, so a malformed request does nothing.
++ */
++export function readEarthAction(raw) {
++  if (!raw || typeof raw !== 'object' || typeof raw.type !== 'string') return null;
++  const finiteIn = (v, limit) => Number.isFinite(v) && Math.abs(v) <= limit;
++  switch (raw.type) {
++    case 'set_preset':
++      return PRESET_IDS.includes(raw.preset) ? { type: raw.type, preset: raw.preset } : null;
++    case 'focus':
++      if (!finiteIn(raw.latitude, 90) || !finiteIn(raw.longitude, 180)) return null;
++      return {
++        type: raw.type,
++        latitude: raw.latitude,
++        longitude: raw.longitude,
++        preset: PRESET_IDS.includes(raw.preset) ? raw.preset : 'regional',
++      };
++    case 'focus_user':
++    case 'return_global':
++    case 'clear_selection':
++      return { type: raw.type };
++    case 'set_layer':
++      return Object.hasOwn(LAYER_IDS, raw.layer) && typeof raw.enabled === 'boolean'
++        ? { type: raw.type, layer: raw.layer, enabled: raw.enabled }
++        : null;
++    case 'show_records':
++      return Array.isArray(raw.records)
++        ? {
++            type: raw.type,
++            records: raw.records,
++            group: RECORD_GROUPS.includes(raw.group) ? raw.group : 'ask',
++          }
++        : null;
++    case 'select_record':
++      return typeof raw.id === 'string' && raw.id.length <= 120 ? { type: raw.type, id: raw.id } : null;
++    case 'select_aircraft':
++    case 'select_satellite':
++      return typeof raw.query === 'string' && TRACK_QUERY.test(raw.query)
++        ? { type: raw.type, query: raw.query }
++        : null;
++    default:
++      return null;
++  }
++}
 +
 +const EARTH_RADIUS_M = 6371000;
 +/** Room for the status bar above and the controls below. */
@@ -3822,7 +3887,12 @@ index 0000000..77dfd73
 +  reset.addEventListener('click', () => void resetCamera());
 +  const actions = doc.createElement('div');
 +  actions.className = 'earth-dial__actions';
-+  actions.append(focus, reset);
++  const investigate = doc.createElement('button');
++  investigate.type = 'button';
++  investigate.className = 'earth-dial__action';
++  investigate.textContent = t('WHAT HAPPENED HERE?');
++  investigate.setAttribute('aria-pressed', 'false');
++  actions.append(focus, reset, investigate);
 +  dial.append(arc, needle, stops, actions);
 +  body.append(dial);
 +
@@ -3977,7 +4047,141 @@ index 0000000..77dfd73
 +    void resetCamera();
 +  });
 +  listen(windowRef, 'keydown', (event) => {
-+    if (event.key === 'Escape' && focused) lensBack.click();
++    if (event.key === 'Escape' && picking) setPicking(false);
++    else if (event.key === 'Escape' && focused) lensBack.click();
++  });
++
++  // ---- Records from the shell, drawn by one shared renderer -----------------
++  const KIND_LABEL = {
++    earthquake: 'Earthquake',
++    event: 'Natural event',
++    disaster: 'Disaster alert',
++    aircraft: 'Aircraft',
++    weather: 'Weather',
++    place: 'Place',
++  };
++  const showRecord = (record) => {
++    enterFocus({ layerId: KIND_LABEL[record.category], title: record.title, facts: recordFacts(record) });
++  };
++  const records = createRecordLayer({ viewer, onSelect: showRecord });
++  removers.push(() => records.destroy());
++
++  const presetRange = (id) => PRESETS.find((p) => p.id === id)?.rangeM ?? globalHeight();
++
++  /** Run one checked action. Resolves to what really happened, never what was hoped for. */
++  const applyAction = async (action) => {
++    lastInteraction = Date.now();
++    switch (action.type) {
++      case 'set_preset':
++        await goToPreset(PRESETS.find((p) => p.id === action.preset));
++        return { ok: true };
++      case 'focus': {
++        await run('stop_tracking', {});
++        const target = { latitude: action.latitude, longitude: action.longitude };
++        const preset = PRESETS.find((p) => p.id === action.preset);
++        orbitalApproach(target, presetRange(action.preset), preset?.pitchDeg ?? -90);
++        return { ok: true };
++      }
++      case 'focus_user':
++        if (!position) return { ok: false, error: 'No position to show: location is off or unavailable.' };
++        await goToPreset(PRESETS.find((p) => p.id === 'local'));
++        return { ok: true };
++      case 'return_global':
++        leaveFocus();
++        await resetCamera();
++        return { ok: true };
++      case 'set_layer': {
++        const res = await run('set_layer_visibility', { layerId: LAYER_IDS[action.layer], enabled: action.enabled });
++        return res?.ok === false ? { ok: false, error: res.error || 'The layer did not change.' } : { ok: true };
++      }
++      case 'show_records': {
++        const drawn = records.show(action.group, action.records);
++        return drawn === action.records.length
++          ? { ok: true, drawn }
++          : { ok: drawn > 0, drawn, error: `${action.records.length - drawn} records were not valid and were skipped.` };
++      }
++      case 'select_record': {
++        const record = records.select(action.id);
++        if (!record) return { ok: false, error: 'That record is not on the globe.' };
++        await run('stop_tracking', {});
++        orbitalApproach(record, FOCUS_RANGE_M, -90);
++        showRecord(record);
++        return { ok: true };
++      }
++      case 'select_aircraft':
++      case 'select_satellite': {
++        const layerId = action.type === 'select_aircraft' ? 'flights' : 'satellites';
++        const res = await run('track_entity', { query: action.query, layerId });
++        return res?.ok ? { ok: true } : { ok: false, error: res?.error || `Nothing matched "${action.query}".` };
++      }
++      case 'clear_selection':
++        await run('stop_tracking', {});
++        records.clearSelection();
++        leaveFocus();
++        return { ok: true };
++      default:
++        return { ok: false, error: 'Unknown action.' };
++    }
++  };
++
++  // Batches run one at a time, in order, each action after the one before it.
++  let actionQueue = Promise.resolve();
++  const runBatch = (batchId, rawActions) => {
++    actionQueue = actionQueue.then(async () => {
++      const results = [];
++      for (const raw of (Array.isArray(rawActions) ? rawActions : []).slice(0, 20)) {
++        const action = readEarthAction(raw);
++        if (!action) {
++          results.push({ type: String(raw?.type ?? 'unknown').slice(0, 30), ok: false, error: 'Refused: not a valid Earth action.' });
++          continue;
++        }
++        try {
++          results.push({ type: action.type, ...(await applyAction(action)) });
++        } catch (error) {
++          results.push({ type: action.type, ok: false, error: String(error?.message || error).slice(0, 200) });
++        }
++      }
++      windowRef.parent?.postMessage({ type: ACTION_RESULTS_MESSAGE, batchId, results }, '*');
++    });
++  };
++
++  // ---- What happened here? ----------------------------------------------------
++  let picking = false;
++  let pickRing = null;
++  const setPicking = (next) => {
++    picking = next;
++    investigate.setAttribute('aria-pressed', String(next));
++    body.classList.toggle('earth-picking', next);
++  };
++  investigate.addEventListener('click', () => setPicking(!picking));
++  const pickHandler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
++  removers.push(() => pickHandler.destroy());
++  pickHandler.setInputAction(({ position: click }) => {
++    if (!picking) return;
++    const hit = camera.pickEllipsoid(new Cesium.Cartesian2(click.x, click.y));
++    if (!hit) return;
++    setPicking(false);
++    const carto = Cesium.Cartographic.fromCartesian(hit);
++    const point = {
++      latitude: Number(Cesium.Math.toDegrees(carto.latitude).toFixed(4)),
++      longitude: Number(Cesium.Math.toDegrees(carto.longitude).toFixed(4)),
++    };
++    if (pickRing) viewer.entities.remove(pickRing);
++    pickRing = viewer.entities.add({
++      position: Cesium.Cartesian3.fromDegrees(point.longitude, point.latitude),
++      ellipse: {
++        semiMajorAxis: INVESTIGATE_RADIUS_M,
++        semiMinorAxis: INVESTIGATE_RADIUS_M,
++        material: Cesium.Color.fromCssColorString('#e9b872').withAlpha(0.08),
++        outline: true,
++        outlineColor: Cesium.Color.fromCssColorString('#e9b872').withAlpha(0.7),
++        height: 0,
++      },
++    });
++    windowRef.parent?.postMessage({ type: INVESTIGATE_MESSAGE, ...point, radius_km: INVESTIGATE_RADIUS_M / 1000 }, '*');
++  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
++  removers.push(() => {
++    if (pickRing && !viewer.isDestroyed?.()) viewer.entities.remove(pickRing);
 +  });
 +
 +  // Earthquakes have no selection of their own, so their disc or label opens the
@@ -4097,6 +4301,8 @@ index 0000000..77dfd73
 +          orbitalApproach(target, FOCUS_RANGE_M, -90),
 +        );
 +      }
++    } else if (type === ACTIONS_MESSAGE) {
++      runBatch(String(event.data.batchId ?? '').slice(0, 60), event.data.actions);
 +    } else if (type === VISIBILITY_MESSAGE) {
 +      visible = event.data.visible === true;
 +      if (!visible) {
@@ -4285,6 +4491,300 @@ index 0000000..90c8dbd
 +  const sparse = earthquakeFacts({ mag: 5, depth: null, time: undefined }, now);
 +  assert.equal(sparse.title, 'M5.0');
 +  assert.deepEqual(sparse.facts, ['USGS']);
++});
+diff --git a/src/app/wednesdayRecords.js b/src/app/wednesdayRecords.js
+new file mode 100644
+index 0000000..7927a57
+--- /dev/null
++++ b/src/app/wednesdayRecords.js
+@@ -0,0 +1,213 @@
++/**
++ * W.E.D.N.E.S.D.A.Y. records: one renderer for every real record the shell sends to
++ * the globe, whether from Ask the Earth, the Time Machine, Pulse, or an investigation.
++ *
++ * Records arrive in named groups; sending a group replaces what it drew before. Each
++ * record keeps its own source and time, which the lens shows when it is selected.
++ */
++
++import * as Cesium from 'cesium';
++import {
++  clearOverlaySource,
++  setOverlayEntries,
++  setOverlaySourceVisible,
++} from '../overlays/worldOverlay.js';
++
++export const RECORD_GROUPS = Object.freeze(['ask', 'time', 'compare', 'investigate', 'pulse']);
++const CATEGORIES = new Set(['earthquake', 'event', 'disaster', 'aircraft', 'weather', 'place']);
++export const MAX_RECORDS = 500;
++const LABELLED_PER_GROUP = 24;
++const LIFT_M = 2000;
++
++const COLORS = Object.freeze({
++  earthquake: '#ff8a4c',
++  event: '#ffd25e',
++  disaster: '#ff5d8f',
++  aircraft: '#eef0f4',
++  weather: '#8fb8ff',
++  place: '#b59cff',
++});
++const COMPARE_COLOR = '#8fb8ff';
++
++/** A record the shell sent, checked again here; anything malformed is dropped. */
++export function readRecord(raw) {
++  if (!raw || typeof raw !== 'object') return null;
++  const { id, category, latitude, longitude, title, source } = raw;
++  if (typeof id !== 'string' || !id || id.length > 120) return null;
++  if (!CATEGORIES.has(category)) return null;
++  if (!Number.isFinite(latitude) || Math.abs(latitude) > 90) return null;
++  if (!Number.isFinite(longitude) || Math.abs(longitude) > 180) return null;
++  if (typeof title !== 'string' || typeof source !== 'string') return null;
++  const magnitude = Number.isFinite(raw.magnitude) ? raw.magnitude : undefined;
++  const time = typeof raw.time_utc === 'string' ? raw.time_utc.slice(0, 40) : undefined;
++  const url =
++    typeof raw.url === 'string' && /^https:\/\//.test(raw.url) ? raw.url.slice(0, 500) : undefined;
++  return {
++    id,
++    category,
++    latitude,
++    longitude,
++    title: title.slice(0, 200),
++    source: source.slice(0, 80),
++    magnitude,
++    time_utc: time,
++    url,
++  };
++}
++
++/** Marker size in pixels: earthquakes scale with magnitude, other records are fixed. */
++export function markerSize(record) {
++  if (record.category === 'earthquake' && Number.isFinite(record.magnitude)) {
++    return Math.max(5, Math.min(22, 4 + record.magnitude * 2.2));
++  }
++  return record.category === 'aircraft' ? 6 : 9;
++}
++
++/** Short on-globe label: earthquakes by magnitude, everything else by a trimmed title. */
++export function shortLabel(record) {
++  if (record.category === 'earthquake' && Number.isFinite(record.magnitude)) {
++    return `M${record.magnitude.toFixed(1)}`;
++  }
++  return record.title.length > 28 ? `${record.title.slice(0, 27)}…` : record.title;
++}
++
++/** The facts the lens shows for a record: only fields the record itself carries. */
++export function recordFacts(record, now = Date.now()) {
++  const facts = [];
++  if (record.time_utc) {
++    const t = Date.parse(record.time_utc);
++    if (Number.isFinite(t)) {
++      const hours = (now - t) / 3600000;
++      facts.push(
++        hours < 0
++          ? new Date(t).toISOString().slice(0, 16).replace('T', ' ') + ' UTC'
++          : hours < 1
++            ? `${Math.max(1, Math.round(hours * 60))} min ago`
++            : hours < 48
++              ? `${Math.round(hours)} h ago`
++              : new Date(t).toISOString().slice(0, 10),
++      );
++    }
++  }
++  facts.push(record.source);
++  return facts;
++}
++
++export function createRecordLayer({ viewer, onSelect }) {
++  const dataSource = new Cesium.CustomDataSource('wednesday-records');
++  viewer.dataSources.add(dataSource);
++  const groups = new Map();
++  const byEntityId = new Map();
++  let selectedId = null;
++
++  const overlaySource = (group) => `wednesday-records-${group}`;
++
++  const draw = (group) => {
++    const list = groups.get(group) ?? [];
++    for (const id of [...byEntityId.keys()]) {
++      if (id.startsWith(`${group}|`)) {
++        dataSource.entities.removeById(id);
++        byEntityId.delete(id);
++      }
++    }
++    for (const record of list) {
++      const entityId = `${group}|${record.id}`;
++      const selected = record.id === selectedId;
++      const color = Cesium.Color.fromCssColorString(
++        group === 'compare' ? COMPARE_COLOR : COLORS[record.category],
++      );
++      dataSource.entities.add({
++        id: entityId,
++        position: Cesium.Cartesian3.fromDegrees(record.longitude, record.latitude, LIFT_M),
++        point: {
++          pixelSize: markerSize(record) + (selected ? 6 : 0),
++          color: color.withAlpha(0.85),
++          outlineColor: selected ? Cesium.Color.WHITE : Cesium.Color.fromCssColorString('#090b10'),
++          outlineWidth: selected ? 3 : 1.5,
++        },
++      });
++      byEntityId.set(entityId, record);
++    }
++    const labelled = [...list]
++      .sort((a, b) => (b.magnitude ?? 0) - (a.magnitude ?? 0))
++      .slice(0, LABELLED_PER_GROUP);
++    if (labelled.length) {
++      setOverlayEntries(
++        overlaySource(group),
++        labelled.map((record) => ({
++          id: record.id,
++          position: Cesium.Cartesian3.fromDegrees(record.longitude, record.latitude, LIFT_M),
++          title: shortLabel(record),
++          accent: group === 'compare' ? COMPARE_COLOR : COLORS[record.category],
++          priority: Math.round((record.magnitude ?? 1) * 1000),
++          interactive: true,
++          horizonCull: true,
++          placement: 'above',
++        })),
++      );
++      setOverlaySourceVisible(overlaySource(group), true);
++    } else {
++      clearOverlaySource(overlaySource(group));
++    }
++    viewer.scene.requestRender();
++  };
++
++  const find = (id) => {
++    for (const list of groups.values()) {
++      const hit = list.find((r) => r.id === id);
++      if (hit) return hit;
++    }
++    return null;
++  };
++
++  const setSelected = (id) => {
++    const previous = selectedId;
++    selectedId = id;
++    for (const [group, list] of groups) {
++      if (list.some((r) => r.id === previous || r.id === id)) draw(group);
++    }
++  };
++
++  const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
++  handler.setInputAction(({ position }) => {
++    const picked = viewer.scene.pick(position)?.id;
++    const record = typeof picked?.id === 'string' ? byEntityId.get(picked.id) : null;
++    if (record) {
++      setSelected(record.id);
++      onSelect?.(record);
++    }
++  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
++
++  return {
++    /** Replace a group's records. Returns how many were valid and drawn. */
++    show(group, rawRecords) {
++      if (!RECORD_GROUPS.includes(group)) return 0;
++      const list = [];
++      const seen = new Set();
++      for (const raw of (Array.isArray(rawRecords) ? rawRecords : []).slice(0, MAX_RECORDS)) {
++        const record = readRecord(raw);
++        if (record && !seen.has(record.id)) {
++          seen.add(record.id);
++          list.push(record);
++        }
++      }
++      groups.set(group, list);
++      draw(group);
++      return list.length;
++    },
++    select(id) {
++      const record = find(id);
++      if (!record) return null;
++      setSelected(id);
++      return record;
++    },
++    clearSelection() {
++      setSelected(null);
++    },
++    destroy() {
++      handler.destroy();
++      for (const group of RECORD_GROUPS) clearOverlaySource(overlaySource(group));
++      if (!viewer.isDestroyed?.()) viewer.dataSources.remove(dataSource, true);
++    },
++  };
++}
+diff --git a/src/app/wednesdayRecords.test.mjs b/src/app/wednesdayRecords.test.mjs
+new file mode 100644
+index 0000000..13d5b6a
+--- /dev/null
++++ b/src/app/wednesdayRecords.test.mjs
+@@ -0,0 +1,69 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { LAYER_IDS, readEarthAction } from './wednesdayEarth.js';
++import { markerSize, readRecord, recordFacts, shortLabel } from './wednesdayRecords.js';
++
++const quake = {
++  id: 'usgs:us1',
++  category: 'earthquake',
++  latitude: 10,
++  longitude: 20,
++  title: 'M 4.8 - 10 km S of Somewhere',
++  magnitude: 4.8,
++  time_utc: '2026-11-03T10:00:00Z',
++  source: 'USGS',
++  url: 'https://earthquake.usgs.gov/1',
++};
++
++test('Earth refuses any action outside the contract, whatever the shell sent', () => {
++  for (const raw of [
++    null,
++    { type: 'eval', code: '1' },
++    { type: 'focus', latitude: 91, longitude: 0 },
++    { type: 'focus', latitude: '10', longitude: 0 },
++    { type: 'set_layer', layer: 'detection', enabled: true },
++    { type: 'set_layer', layer: 'flights', enabled: 'yes' },
++    { type: 'set_preset', preset: 'orbit' },
++    { type: 'select_aircraft', query: '<img onerror=x>' },
++    { type: 'show_records', records: 'all' },
++  ]) {
++    assert.equal(readEarthAction(raw), null, JSON.stringify(raw));
++  }
++});
++
++test('valid actions are kept to their own fields', () => {
++  assert.deepEqual(readEarthAction({ type: 'focus', latitude: 1, longitude: 2, extra: 'x' }), {
++    type: 'focus',
++    latitude: 1,
++    longitude: 2,
++    preset: 'regional',
++  });
++  assert.deepEqual(readEarthAction({ type: 'show_records', records: [], group: 'nope' }), {
++    type: 'show_records',
++    records: [],
++    group: 'ask',
++  });
++  assert.equal(readEarthAction({ type: 'select_satellite', query: 'ISS (ZARYA)' }).query, 'ISS (ZARYA)');
++});
++
++test('every layer the shell may name maps to a real Earth layer id', () => {
++  assert.equal(LAYER_IDS.vessels, 'ais-live-vessels');
++  assert.equal(Object.keys(LAYER_IDS).length, 8);
++});
++
++test('a record is drawn only with a real position, category and source', () => {
++  assert.equal(readRecord({ ...quake, latitude: 100 }), null);
++  assert.equal(readRecord({ ...quake, category: 'rumour' }), null);
++  assert.equal(readRecord({ ...quake, source: undefined }), null);
++  assert.equal(readRecord({ ...quake, url: 'javascript:alert(1)' }).url, undefined, 'only https links survive');
++  assert.equal(readRecord(quake).magnitude, 4.8);
++});
++
++test('labels, sizes and facts come only from the record', () => {
++  assert.equal(shortLabel(quake), 'M4.8');
++  assert.equal(shortLabel({ ...quake, category: 'event', title: 'A very long wildfire name in a forest far away' }).length, 28);
++  assert.ok(markerSize({ ...quake, magnitude: 7 }) > markerSize(quake));
++  const facts = recordFacts(quake, Date.parse('2026-11-03T12:00:00Z'));
++  assert.deepEqual(facts, ['2 h ago', 'USGS']);
++  assert.deepEqual(recordFacts({ ...quake, time_utc: undefined }), ['USGS'], 'no time means no time shown');
 +});
 diff --git a/src/cockpitMarkup.test.mjs b/src/cockpitMarkup.test.mjs
 index 075b5a0..935b754 100644
@@ -4479,7 +4979,7 @@ index 63dbe6c..69f3973 100644
  //   t('Save keys')                                   → 'Сохранить ключи'
  //   t('Cleared {name}', { name })                    → named interpolation
 diff --git a/src/i18n/locales/de.json b/src/i18n/locales/de.json
-index 938fb20..44c60eb 100644
+index 938fb20..fe25c48 100644
 --- a/src/i18n/locales/de.json
 +++ b/src/i18n/locales/de.json
 @@ -61,7 +61,7 @@
@@ -4533,7 +5033,7 @@ index 938fb20..44c60eb 100644
    "Pick a shape, then click the map.": "Form wählen, dann auf die Karte klicken.",
    "Enter to place the pin, Esc to cancel.": "Enter setzt den Pin, Esc bricht ab.",
    "Click where the pin goes.": "Auf die Stelle für den Pin klicken.",
-@@ -2943,5 +2942,20 @@
+@@ -2943,5 +2942,21 @@
    "Load scenes from an exported JSON file": "Szenen aus einer exportierten JSON-Datei laden",
    "Download the timing log of the last play": "Zeitprotokoll der letzten Wiedergabe herunterladen",
    "Edit anchors, data packs and shot details": "Anker, Datenpakete und Aufnahmedetails bearbeiten",
@@ -4553,10 +5053,11 @@ index 938fb20..44c60eb 100644
 +  "Return to global": "Zurück zur Globalansicht",
 +  "{depth} km deep": "{depth} km tief",
 +  "{minutes} min ago": "vor {minutes} Min.",
-+  "{hours} h ago": "vor {hours} Std."
++  "{hours} h ago": "vor {hours} Std.",
++  "WHAT HAPPENED HERE?": "WAS GESCHAH HIER?"
  }
 diff --git a/src/i18n/locales/es.json b/src/i18n/locales/es.json
-index 5b893a0..8c0df67 100644
+index 5b893a0..4ba2cbc 100644
 --- a/src/i18n/locales/es.json
 +++ b/src/i18n/locales/es.json
 @@ -1,6 +1,6 @@
@@ -4601,7 +5102,7 @@ index 5b893a0..8c0df67 100644
    "Close key setup": "Cerrar la configuración de claves",
    "The globe already flies keyless. Every key below switches on another real feed — paste one and it's saved into this app's local configuration, then the server restarts itself. Server-side keys stay on this machine; Google Maps and Cesium ion run in the browser and must be provider-restricted. Keys you configured elsewhere are shown but never touched.": "El globo ya funciona sin claves. Cada clave de abajo activa otra fuente real — pega una y queda guardada en la configuración local de esta app, y luego el servidor se reinicia solo. Las claves del servidor se quedan en esta máquina; Google Maps y Cesium ion funcionan en el navegador y sus claves deben restringirse en la consola del proveedor. Las claves que configuraste en otro lugar se muestran, pero nunca se modifican.",
    "ESC to close": "ESC para cerrar",
-@@ -3013,5 +3012,20 @@
+@@ -3013,5 +3012,21 @@
    "Play from this scene through the rest of the project": "Reproduce desde esta escena hasta el resto del proyecto",
    "Play the shot after the selected one, moving on to the next scene when needed": "Reproduce el plano posterior al seleccionado y pasa a la siguiente escena si hace falta",
    "Edit anchors, data packs and shot details": "Edita anclas, paquetes de datos y detalles de los planos",
@@ -4621,10 +5122,11 @@ index 5b893a0..8c0df67 100644
 +  "Return to global": "Volver a la vista global",
 +  "{depth} km deep": "{depth} km de profundidad",
 +  "{minutes} min ago": "hace {minutes} min",
-+  "{hours} h ago": "hace {hours} h"
++  "{hours} h ago": "hace {hours} h",
++  "WHAT HAPPENED HERE?": "¿QUÉ PASÓ AQUÍ?"
  }
 diff --git a/src/i18n/locales/fr.json b/src/i18n/locales/fr.json
-index 895b121..0fbf3b6 100644
+index 895b121..19636df 100644
 --- a/src/i18n/locales/fr.json
 +++ b/src/i18n/locales/fr.json
 @@ -306,7 +306,7 @@
@@ -4680,7 +5182,7 @@ index 895b121..0fbf3b6 100644
    "Malformed cyclone snapshot": "Instantané cyclonique mal formé",
    "Cyclone request timed out": "Délai dépassé pour la requête cyclonique",
    "scene|PLAY": "LIRE",
-@@ -3013,5 +3012,20 @@
+@@ -3013,5 +3012,21 @@
    "Load scenes from an exported JSON file": "Charger des scènes depuis un fichier JSON exporté",
    "Download the timing log of the last play": "Télécharger le journal de minutage de la dernière lecture",
    "Edit anchors, data packs and shot details": "Modifier les ancres, les paquets de données et les détails des plans",
@@ -4700,10 +5202,11 @@ index 895b121..0fbf3b6 100644
 +  "Return to global": "Revenir à la vue globale",
 +  "{depth} km deep": "{depth} km de profondeur",
 +  "{minutes} min ago": "il y a {minutes} min",
-+  "{hours} h ago": "il y a {hours} h"
++  "{hours} h ago": "il y a {hours} h",
++  "WHAT HAPPENED HERE?": "QUE S'EST-IL PASSÉ ICI ?"
  }
 diff --git a/src/i18n/locales/it.json b/src/i18n/locales/it.json
-index ccce863..800fa55 100644
+index ccce863..41a41ed 100644
 --- a/src/i18n/locales/it.json
 +++ b/src/i18n/locales/it.json
 @@ -306,7 +306,7 @@
@@ -4759,7 +5262,7 @@ index ccce863..800fa55 100644
    "Malformed cyclone snapshot": "Snapshot dei cicloni non valido",
    "Cyclone request timed out": "La richiesta dei cicloni è andata in timeout",
    "scene|PLAY": "AVVIA",
-@@ -3013,5 +3012,20 @@
+@@ -3013,5 +3012,21 @@
    "Load scenes from an exported JSON file": "Carica le scene da un file JSON esportato",
    "Download the timing log of the last play": "Scarica il log dei tempi dell'ultima riproduzione",
    "Edit anchors, data packs and shot details": "Modifica ancore, pacchetti dati e dettagli degli scatti",
@@ -4779,10 +5282,11 @@ index ccce863..800fa55 100644
 +  "Return to global": "Torna alla vista globale",
 +  "{depth} km deep": "{depth} km di profondità",
 +  "{minutes} min ago": "{minutes} min fa",
-+  "{hours} h ago": "{hours} h fa"
++  "{hours} h ago": "{hours} h fa",
++  "WHAT HAPPENED HERE?": "COSA È SUCCESSO QUI?"
  }
 diff --git a/src/i18n/locales/ja.json b/src/i18n/locales/ja.json
-index edd9c07..c37986a 100644
+index edd9c07..eafbb16 100644
 --- a/src/i18n/locales/ja.json
 +++ b/src/i18n/locales/ja.json
 @@ -300,7 +300,7 @@
@@ -4838,7 +5342,7 @@ index edd9c07..c37986a 100644
    "routing busy — too many routes at once": "ルート検索サービスが混雑しています。同時に要求されたルートが多すぎます",
    "route proxy error": "ルート検索プロキシでエラーが発生しました",
    "Malformed cyclone snapshot": "サイクロンのスナップショットの形式が不正です",
-@@ -2873,5 +2872,20 @@
+@@ -2873,5 +2872,21 @@
    "Load scenes from an exported JSON file": "書き出したJSONファイルからシーンを読み込む",
    "Download the timing log of the last play": "前回の再生のタイミングログをダウンロード",
    "Edit anchors, data packs and shot details": "アンカー、データパック、ショットの詳細を編集",
@@ -4858,10 +5362,11 @@ index edd9c07..c37986a 100644
 +  "Return to global": "全球表示に戻る",
 +  "{depth} km deep": "深さ {depth} km",
 +  "{minutes} min ago": "{minutes} 分前",
-+  "{hours} h ago": "{hours} 時間前"
++  "{hours} h ago": "{hours} 時間前",
++  "WHAT HAPPENED HERE?": "ここで何が起きた?"
  }
 diff --git a/src/i18n/locales/pt.json b/src/i18n/locales/pt.json
-index c3f4bcf..ce2b117 100644
+index c3f4bcf..2d12083 100644
 --- a/src/i18n/locales/pt.json
 +++ b/src/i18n/locales/pt.json
 @@ -306,7 +306,7 @@
@@ -4917,7 +5422,7 @@ index c3f4bcf..ce2b117 100644
    "scene|PLAY": "INICIAR",
    "AUTHORING": "CRIAÇÃO",
    "Create and edit scenes": "Criar e editar cenas",
-@@ -3013,5 +3012,20 @@
+@@ -3013,5 +3012,21 @@
    "Load scenes from an exported JSON file": "Carregar cenas de um arquivo JSON exportado",
    "Download the timing log of the last play": "Baixar o registro de tempos da última reprodução",
    "Edit anchors, data packs and shot details": "Editar âncoras, pacotes de dados e detalhes dos planos",
@@ -4937,10 +5442,11 @@ index c3f4bcf..ce2b117 100644
 +  "Return to global": "Voltar à vista global",
 +  "{depth} km deep": "{depth} km de profundidade",
 +  "{minutes} min ago": "há {minutes} min",
-+  "{hours} h ago": "há {hours} h"
++  "{hours} h ago": "há {hours} h",
++  "WHAT HAPPENED HERE?": "O QUE ACONTECEU AQUI?"
  }
 diff --git a/src/i18n/locales/ru.json b/src/i18n/locales/ru.json
-index fe8338c..ccb9904 100644
+index fe8338c..5be76fa 100644
 --- a/src/i18n/locales/ru.json
 +++ b/src/i18n/locales/ru.json
 @@ -44,7 +44,7 @@
@@ -4987,7 +5493,7 @@ index fe8338c..ccb9904 100644
    "Don't show this again": "Больше не показывать",
    "ESC to dismiss": "ESC — скрыть",
    "LIVE CONTACTS": "КОНТАКТЫ ОНЛАЙН",
-@@ -3083,5 +3082,20 @@
+@@ -3083,5 +3082,21 @@
    "Play from this scene through the rest of the project": "Воспроизвести с этой сцены и далее по всему проекту",
    "Play the shot after the selected one, moving on to the next scene when needed": "Воспроизвести кадр после выбранного, при необходимости перейдя к следующей сцене",
    "Edit anchors, data packs and shot details": "Изменить якоря, пакеты данных и параметры кадров",
@@ -5007,10 +5513,11 @@ index fe8338c..ccb9904 100644
 +  "Return to global": "Вернуться к глобусу",
 +  "{depth} km deep": "глубина {depth} км",
 +  "{minutes} min ago": "{minutes} мин назад",
-+  "{hours} h ago": "{hours} ч назад"
++  "{hours} h ago": "{hours} ч назад",
++  "WHAT HAPPENED HERE?": "ЧТО ЗДЕСЬ ПРОИЗОШЛО?"
  }
 diff --git a/src/i18n/locales/uk.json b/src/i18n/locales/uk.json
-index 37e55b9..6a105cd 100644
+index 37e55b9..8b9c308 100644
 --- a/src/i18n/locales/uk.json
 +++ b/src/i18n/locales/uk.json
 @@ -309,7 +309,7 @@
@@ -5066,7 +5573,7 @@ index 37e55b9..6a105cd 100644
    "Malformed cyclone snapshot": "Некоректний знімок циклонів",
    "Cyclone request timed out": "Минув час очікування запиту циклонів",
    "scene|PLAY": "СТАРТ",
-@@ -3083,5 +3082,20 @@
+@@ -3083,5 +3082,21 @@
    "Load scenes from an exported JSON file": "Завантажити сцени з експортованого файлу JSON",
    "Download the timing log of the last play": "Завантажити журнал таймінгів останнього відтворення",
    "Edit anchors, data packs and shot details": "Змінити якорі, пакети даних і параметри кадрів",
@@ -5086,10 +5593,11 @@ index 37e55b9..6a105cd 100644
 +  "Return to global": "Повернутися до глобуса",
 +  "{depth} km deep": "глибина {depth} км",
 +  "{minutes} min ago": "{minutes} хв тому",
-+  "{hours} h ago": "{hours} год тому"
++  "{hours} h ago": "{hours} год тому",
++  "WHAT HAPPENED HERE?": "ЩО ТУТ СТАЛОСЯ?"
  }
 diff --git a/src/i18n/locales/zh-CN.json b/src/i18n/locales/zh-CN.json
-index 8dc28b3..6ca24c2 100644
+index 8dc28b3..c93e0a0 100644
 --- a/src/i18n/locales/zh-CN.json
 +++ b/src/i18n/locales/zh-CN.json
 @@ -300,7 +300,7 @@
@@ -5145,7 +5653,7 @@ index 8dc28b3..6ca24c2 100644
    "hemisphere|N": "N",
    "hemisphere|S": "S",
    "hemisphere|E": "E",
-@@ -2873,5 +2872,20 @@
+@@ -2873,5 +2872,21 @@
    "Play from this scene through the rest of the project": "从此场景开始播放项目中的其余场景",
    "Play the shot after the selected one, moving on to the next scene when needed": "播放所选镜头的下一个镜头，必要时进入下一个场景",
    "Edit anchors, data packs and shot details": "编辑锚点、数据包和镜头详情",
@@ -5165,10 +5673,11 @@ index 8dc28b3..6ca24c2 100644
 +  "Return to global": "返回全球视图",
 +  "{depth} km deep": "深度 {depth} 公里",
 +  "{minutes} min ago": "{minutes} 分钟前",
-+  "{hours} h ago": "{hours} 小时前"
++  "{hours} h ago": "{hours} 小时前",
++  "WHAT HAPPENED HERE?": "这里发生了什么?"
  }
 diff --git a/src/i18n/locales/zh-Hant.json b/src/i18n/locales/zh-Hant.json
-index c821312..5187216 100644
+index c821312..10a7770 100644
 --- a/src/i18n/locales/zh-Hant.json
 +++ b/src/i18n/locales/zh-Hant.json
 @@ -300,7 +300,7 @@
@@ -5224,7 +5733,7 @@ index c821312..5187216 100644
    "hemisphere|N": "N",
    "hemisphere|S": "S",
    "hemisphere|E": "E",
-@@ -2873,5 +2872,20 @@
+@@ -2873,5 +2872,21 @@
    "Play from this scene through the rest of the project": "從此場景開始播放項目中的其餘場景",
    "Play the shot after the selected one, moving on to the next scene when needed": "播放所選鏡頭的下一個鏡頭，必要時進入下一個場景",
    "Edit anchors, data packs and shot details": "編輯錨點、數據包和鏡頭詳情",
@@ -5244,7 +5753,8 @@ index c821312..5187216 100644
 +  "Return to global": "返回全球視圖",
 +  "{depth} km deep": "深度 {depth} 公里",
 +  "{minutes} min ago": "{minutes} 分鐘前",
-+  "{hours} h ago": "{hours} 小時前"
++  "{hours} h ago": "{hours} 小時前",
++  "WHAT HAPPENED HERE?": "這裡發生了什麼?"
  }
 diff --git a/src/i18n/same-as-english.json b/src/i18n/same-as-english.json
 index 57f2df8..0b8e3c3 100644
@@ -7011,10 +7521,10 @@ index b2c052e..2bd3b8d 100644
  .rail-card-labels {
 diff --git a/src/ui/styles/wednesday.css b/src/ui/styles/wednesday.css
 new file mode 100644
-index 0000000..513404a
+index 0000000..49e7081
 --- /dev/null
 +++ b/src/ui/styles/wednesday.css
-@@ -0,0 +1,446 @@
+@@ -0,0 +1,455 @@
 +/*
 + * W.E.D.N.E.S.D.A.Y. Earth: the planet is the interface. The desktop shell supplies
 + * the brand and status bar over the top 56px, so nothing here repeats them.
@@ -7460,6 +7970,15 @@ index 0000000..513404a
 +/* The cockpit has its own header and exit; the focus banner would sit on top of it. */
 +body.cockpit-mode #earth-lens {
 +  display: none;
++}
++
++/* ── What happened here? picks a point with the next click ── */
++body.earth-picking #cesiumContainer {
++  cursor: crosshair;
++}
++#earth-dial .earth-dial__action[aria-pressed='true'] {
++  color: #1b1206;
++  background: #e9b872 !important;
 +}
 diff --git a/src/ui/templates/hud-loading.html b/src/ui/templates/hud-loading.html
 index 1a68a70..51d5051 100644

@@ -8,6 +8,8 @@ const LABELS: Record<AssistantPhase, string> = {
   transcribing: 'Transcribing',
   reviewing: 'Review transcript',
   thinking: 'Thinking',
+  retrieving: 'Retrieving data',
+  awaiting: 'Waiting for your approval',
   executing: 'Running an approved action',
   speaking: 'Speaking',
   error: 'Needs attention',

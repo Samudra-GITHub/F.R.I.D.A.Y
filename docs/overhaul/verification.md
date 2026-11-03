@@ -97,3 +97,27 @@ Voice lab UI check: synthesized speech replaced `getUserMedia` in the page (test
 The `AudioWorklet` move is a precaution: `ScriptProcessor` is deprecated and runs on the page's main thread, but dropped audio was **not** demonstrated. An early 33% result was caused by the test stub starting its audio before capture was ready. The level meter could not be re-checked in the pane, which rendered 0 animation frames at the time.
 
 **Not run:** Whisper on a real microphone, the other 3 real-microphone phrases on SAPI, processing-off comparison, screen-reader passes, Windows display-scaling tests, measured frame rates.
+
+## Ask the Earth milestone (3–4 Nov 2026, live data, real backend and Ollama)
+
+| Check | Result |
+|---|---|
+| Backend tests | 232 passed (25 new in `test_earth_actions.py`) |
+| Desktop tests, type check, build | 45 passed; clean; passes (JS 288.6 kB, 90.4 kB gzip) |
+| Earth tests (`npm test` in `apps/gods-eye-view`) | 9,117 passed, 11 skipped, 2 failed of 9,130. The failures were timing tests (`ranking 250k rows`, `incomplete KML roots`, then `malformed-file repairs` on a rerun) that differ between runs and pass alone (56, 42 and 8 tests in their files) |
+| Locales (`npm run i18n`) | every locale complete |
+| Patch | `patches/wednesday-earth.patch` regenerated (95 files) and applied cleanly to a fresh checkout of a725178 |
+| `POST /chat` "Show me earthquakes above magnitude 4 today" | ok in 419 s and again in 372 s: one `get_earthquakes` call (`min_magnitude` 4), two validated actions (`set_layer` earthquakes, `show_records` with 10 records) |
+| Same question in the app's Ask the Earth panel | Earth marked both actions ok; records list, sources and Read as shown. The answer's first record, "M 5.2 - 14 km W of Pisco, Peru", was **not** in the 10 records USGS returned (a CLI run invented "M 6.1 Sisimiut, Greenland" the same way) |
+| After adding the record check | a third run returned `unmatched_mentions: []` with no invented record and no false alarm on accented place names; the invented case is a unit test using the Pisco line |
+| Model timing, direct to Ollama with the same 13 tools | 75.7 s for the first step: 1,929 prompt tokens in 68.4 s, 34 tokens out in 6.8 s. Ollama reports `size_vram` 0 |
+| History, 1–7 Oct 2026, M5+ | 227 records (USGS 29, EONET 198) |
+| History in the future | 422, "there is no record of the future" |
+| Investigate around Tokyo | 4 records, farthest 108 km; weather; place name listed as missing because place search is off |
+| Investigate at 4.62, 167.37 (open Pacific) | no records, said plainly; current weather; sources, with 1 listed as missing |
+| Pulse | 24 items, each with source and time; Show on Earth flew to M 5.2 Mid-Indian Ridge and opened its lens |
+| Time Machine, 30 days | 873 records; playback steps day by day; loading now returns to the global view |
+| Orbit | panel shows CelesTrak freshness; Follow the ISS selects ISS (ZARYA) and opens its lens |
+| Phone width (375 px) | investigate panel, Ask composer and navigation don't overlap; no horizontal scroll |
+
+**Not run:** the model on a GPU; Summarize on Pulse with the real model; Compare in Time; Near me in Orbit with a fresh location; ships, which need an AISStream key; frame rate.
