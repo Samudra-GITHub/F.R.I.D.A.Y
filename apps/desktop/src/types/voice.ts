@@ -8,7 +8,9 @@ export type AssistantPhase =
   | 'listening'      // microphone open (push-to-talk)
   | 'transcribing'   // local recognizer running
   | 'reviewing'      // transcript waiting for the user to send or discard
-  | 'thinking'       // model / tools running
+  | 'thinking'       // the local model is working
+  | 'retrieving'     // a read tool is fetching data
+  | 'awaiting'       // an action waits for the user's approval
   | 'executing'      // an action the user approved is running
   | 'speaking'       // local TTS playback
   | 'error';
@@ -31,6 +33,8 @@ export interface ToolExecutionSummary {
   allowed: boolean;
   error?: string | null;
   details?: string | null;
+  /** The arguments the tool ran with, so the user can see how the request was read. */
+  arguments?: Record<string, unknown>;
 }
 
 export type ConversationStatus = 'ok' | 'ollama_unavailable' | 'turn_limit_reached' | 'cancelled' | 'error';
@@ -45,6 +49,10 @@ export interface ConversationResponse {
   status: ConversationStatus;
   error?: string | null;
   approvals?: PendingApproval[];
+  /** Validated Earth view requests; the Earth screen confirms each one. */
+  earth_actions?: unknown[];
+  /** Records the answer names that no tool returned. */
+  unmatched_mentions?: string[];
 }
 
 export type ApprovalStatus = 'pending' | 'executing' | 'succeeded' | 'failed' | 'outcome_unknown' | 'denied' | 'expired';
@@ -77,6 +85,10 @@ export interface ChatMessageItem {
   /** Set on user messages that came from a voice transcript. */
   viaVoice?: boolean;
   approvals?: PendingApproval[];
+  /** The Earth batch this reply sent, whose results come from the Earth screen. */
+  earthBatchId?: string | null;
+  /** Records the answer names that no tool returned, found by the backend. */
+  unmatchedMentions?: string[];
 }
 
 export interface STTTranscriptionResponse {

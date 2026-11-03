@@ -71,6 +71,8 @@
 .topbar__phase[data-phase='listening'] .topbar__phase-dot { background: var(--accent); animation: dot-pulse 1.2s infinite; box-shadow: 0 0 0 3px var(--accent-soft); }
 .topbar__phase[data-phase='transcribing'] .topbar__phase-dot,
 .topbar__phase[data-phase='thinking'] .topbar__phase-dot { background: var(--info); animation: dot-pulse 1.4s infinite; box-shadow: 0 0 0 3px var(--info-soft); }
+.topbar__phase[data-phase='retrieving'] .topbar__phase-dot { background: var(--info); animation: dot-pulse 1s infinite; }
+.topbar__phase[data-phase='awaiting'] .topbar__phase-dot { background: var(--warning); animation: dot-pulse 2s infinite; }
 .topbar__phase[data-phase='executing'] .topbar__phase-dot { background: var(--accent); animation: dot-pulse 1s infinite; }
 .topbar__phase[data-phase='speaking'] .topbar__phase-dot { background: #f5dcb4; }
 .topbar__phase[data-phase='reviewing'] .topbar__phase-dot { background: var(--warning); }
@@ -155,3 +157,9 @@
 @media (prefers-reduced-motion: reduce) {
   .stage__view.view-enter, .stage__earth:not([hidden]) { animation: none; }
 }
+
+/* ---- World modes: Live, Time, Orbit -------------------------------------------- */
+.topbar__modes { display: inline-flex; gap: 2px; padding: 3px; margin-left: var(--sp-3); border-radius: var(--r-md); background: var(--surface-overlay); border: 1px solid var(--line-1); }
+.topbar__mode { height: 26px; padding: 0 var(--sp-3); border-radius: var(--r-sm); color: var(--text-2); font-size: var(--fs-12); font-weight: 600; letter-spacing: 0.04em; }
+.topbar__mode:hover { color: var(--text-1); }
+.topbar__mode[aria-pressed='true'] { background: var(--accent); color: var(--text-on-accent); }

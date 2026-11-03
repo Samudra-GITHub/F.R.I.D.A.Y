@@ -18,6 +18,7 @@ class PermissionType(str, Enum):
     LOCATION_CONTROL = "location:control"
     PLACES_SEARCH = "places:search"
     WORLD_READ = "world:read"
+    EARTH_VIEW = "earth:view"
 
 
 class LocationMode(str, Enum):
@@ -549,6 +550,7 @@ class ToolExecutionSummary(BaseModel):
     allowed: bool = Field(default=True, description="Whether tool was authorized by Capability Broker")
     error: Optional[str] = Field(default=None, description="Error or rejection reason if unsuccessful")
     details: Optional[str] = Field(default=None, description="Summary or commentary")
+    arguments: Dict[str, Any] = Field(default_factory=dict, description="Arguments the tool ran with, shown so the user can see how the request was read")
 
 
 
@@ -569,6 +571,8 @@ class ConversationResponse(BaseModel):
     tool_calls: List[ToolExecutionSummary] = Field(default_factory=list, description="Tool actions taken")
     status: str = Field(default="ok", description="Status: 'ok', 'ollama_unavailable', 'turn_limit_reached', 'cancelled', or 'error'")
     error: Optional[str] = Field(default=None, description="Error detail if status is not ok")
+    earth_actions: List[Dict[str, Any]] = Field(default_factory=list, description="Validated Earth view requests. The Earth screen confirms each one")
+    unmatched_mentions: List[str] = Field(default_factory=list, description="Records the answer names that no tool returned")
     approvals: List["PendingApproval"] = Field(default_factory=list, description="Actions awaiting the user's explicit approval")
 
 

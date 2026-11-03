@@ -1,0 +1,63 @@
+/* Ask the Earth sits low over the planet: a composer, with the answer unfolding above it. */
+.ask {
+  position: absolute; left: 50%; bottom: 168px; z-index: 6;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 32px));
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  pointer-events: none;
+}
+.ask > * { pointer-events: auto; }
+.ask__composer {
+  display: flex; align-items: center; gap: var(--sp-2);
+  height: 48px; padding: 0 6px;
+  border: 1px solid var(--line-2); border-radius: var(--r-pill);
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-2);
+}
+.ask__composer:focus-within { border-color: var(--accent-line); }
+.ask__composer .mic { width: 36px; height: 36px; }
+.ask__input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: var(--text-1); font-size: var(--fs-14); outline: none; }
+.ask__input::placeholder { color: var(--text-3); }
+.ask__send { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--text-on-accent); }
+.ask__send:disabled { background: var(--surface-3); color: var(--text-4); }
+.ask__suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.ask__suggestion { background: var(--surface-overlay); }
+
+.ask__panel {
+  max-height: min(52vh, 520px); overflow-y: auto;
+  border: 1px solid var(--line-1); border-radius: var(--r-lg);
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-3);
+  animation: ask-unfold var(--dur-3) var(--ease-emphasized);
+}
+@keyframes ask-unfold { from { opacity: 0; transform: translateY(8px) scale(0.98); } }
+.ask__head { position: sticky; top: 0; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: inherit; border-bottom: 1px solid var(--line-1); }
+.ask__question { flex: 1; min-width: 0; font-weight: 600; font-size: var(--fs-14); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask__progress { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); color: var(--text-2); font-size: var(--fs-13); }
+.ask__progress .btn { margin-left: auto; }
+.ask__body { display: grid; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4) var(--sp-4); }
+.ask__read { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ask__label { font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.ask__chip { padding: 2px 8px; border-radius: var(--r-pill); background: var(--surface-3); color: var(--text-2); font-size: var(--fs-12); }
+.ask__chip--bad { color: var(--danger); background: var(--danger-soft); }
+.ask__answer { font-size: var(--fs-14); line-height: 1.55; }
+.ask__actions { list-style: none; display: grid; gap: 4px; }
+.ask__action { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: var(--fs-12); color: var(--text-2); }
+.ask__action.is-ok svg { color: var(--success); }
+.ask__action.is-bad svg { color: var(--danger); }
+.ask__why { width: 100%; padding-left: 18px; color: var(--text-3); }
+.ask__records { list-style: none; display: grid; gap: 2px; max-height: 200px; overflow-y: auto; border-top: 1px solid var(--line-1); padding-top: var(--sp-2); }
+.ask__record { display: grid; width: 100%; padding: 6px 8px; border-radius: var(--r-sm); text-align: left; }
+.ask__record:hover { background: var(--surface-3); }
+.ask__record-title { font-size: var(--fs-13); color: var(--text-1); }
+.ask__record-meta { font-size: var(--fs-11); color: var(--text-3); }
+.ask__sources summary { cursor: pointer; font-size: var(--fs-12); color: var(--text-2); }
+.ask__sources ul { list-style: none; display: grid; gap: 4px; margin-top: var(--sp-2); font-size: var(--fs-12); }
+.ask__sources a { color: var(--accent); }
+
+@media (max-width: 720px) {
+  .ask { bottom: calc(env(safe-area-inset-bottom, 0px) + 236px); width: calc(100% - 20px); }
+  .ask__panel { max-height: 42vh; }
+  .ask__suggestions { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .ask__panel { animation: none; } }

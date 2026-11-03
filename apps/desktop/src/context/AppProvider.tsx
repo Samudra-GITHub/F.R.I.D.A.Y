@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ChatMessageItem, HealthInfo, PendingApproval, SessionEvent } from '../types/voice';
+import { queueEarthActions } from '../services/earthActions';
 import { cancelChat, decideApproval, fetchHealth, fetchTurnProgress, resetConversation, sendChatMessage } from '../services/voiceApi';
 import { useVoice } from './VoiceContext';
 
@@ -120,6 +121,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             error: data.error,
             latencyMs,
             approvals: data.approvals ?? [],
+            earthBatchId: data.earth_actions?.length ? queueEarthActions(data.earth_actions, trimmed.slice(0, 60)) : null,
+            unmatchedMentions: data.unmatched_mentions ?? [],
           },
         ]);
         logEvent({
@@ -252,7 +255,9 @@ export const useAssistantPhase = (): import('../types/voice').AssistantPhase => 
   const voice = useVoice();
   if (voice.phase === 'listening') return 'listening';
   if (voice.phase === 'transcribing') return 'transcribing';
+  if (runningTool?.startsWith('get_')) return 'retrieving';
   if (runningTool || messages.some((m) => m.approvals?.some((a) => a.status === 'executing'))) return 'executing';
+  if (pendingSince === null && messages.some((m) => m.approvals?.some((a) => a.status === 'pending'))) return 'awaiting';
   if (pendingSince !== null) return 'thinking';
   if (voice.isSpeaking) return 'speaking';
   if (voice.pending) return 'reviewing';

@@ -1,0 +1,57 @@
+/* Contextual panels that float over the planet: one at a time, never over its centre. */
+.earth-panel {
+  position: absolute; z-index: 6;
+  display: grid; gap: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1px solid var(--line-1); border-radius: var(--r-lg);
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-3);
+  animation: ask-unfold var(--dur-3) var(--ease-emphasized);
+}
+.earth-panel__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.earth-panel__kicker { font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.earth-panel__hint { font-size: var(--fs-12); color: var(--text-3); }
+.earth-panel__loading { display: flex; align-items: center; gap: var(--sp-2); color: var(--text-2); font-size: var(--fs-13); }
+
+/* Time Machine: a wide strip under the status bar. */
+.earth-panel--time { top: 112px; left: 50%; transform: translateX(-50%); width: min(720px, calc(100% - 32px)); max-height: calc(100% - 300px); overflow-y: auto; }
+.time__controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sp-3); }
+.time__controls label { display: grid; gap: 4px; font-size: var(--fs-11); color: var(--text-3); }
+.time__controls .field { height: 32px; min-width: 0; }
+.time__controls input[type='number'] { width: 90px; }
+.time__playback { display: flex; align-items: center; gap: var(--sp-2); }
+.time__slider { flex: 1; accent-color: var(--accent); }
+.time__day { min-width: 92px; text-align: right; font-size: var(--fs-13); color: var(--text-1); }
+.time__stats { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); font-size: var(--fs-13); color: var(--text-2); }
+.time__stats strong { color: var(--text-1); font-variant-numeric: tabular-nums; }
+.time__toggle { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: var(--fs-12); }
+.time__sources summary, .time__compare summary { cursor: pointer; font-size: var(--fs-12); color: var(--text-2); }
+.time__sources ul { list-style: none; display: grid; gap: 4px; margin-top: var(--sp-2); font-size: var(--fs-12); color: var(--text-2); }
+.time__missing { color: var(--warning); }
+.time__compare > .time__controls { margin-top: var(--sp-2); }
+.time__table { width: 100%; margin-top: var(--sp-3); border-collapse: collapse; font-size: var(--fs-13); }
+.time__table th, .time__table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--line-1); font-variant-numeric: tabular-nums; }
+.time__table th { font-weight: 550; color: var(--text-3); font-size: var(--fs-12); }
+.time__b { color: var(--info); }
+
+/* Orbit: a column at the left, under the status bar. */
+.earth-panel--orbit { top: 64px; left: 84px; width: min(380px, calc(100% - 100px)); }
+.orbit__rows { display: grid; gap: var(--sp-2); }
+.orbit__row { display: grid; grid-template-columns: auto 1fr auto; gap: var(--sp-3); align-items: start; padding: var(--sp-3); border: 1px solid var(--line-1); border-radius: var(--r-md); background: var(--surface-0); }
+.orbit__row > svg { margin-top: 2px; color: var(--accent); }
+.orbit__title { font-weight: 600; font-size: var(--fs-13); }
+.orbit__meta { margin-top: 2px; font-size: var(--fs-12); color: var(--text-3); line-height: 1.45; }
+.orbit__bad { color: var(--warning); }
+
+/* What happened here? sits at the right, clear of the dial. */
+.earth-panel--investigate { top: 64px; right: 16px; width: min(380px, calc(100% - 32px)); max-height: calc(100% - 260px); overflow-y: auto; }
+/* Beside Earth's own display controls, not over them, where there is room. */
+@media (min-width: 1000px) { .earth-panel--investigate { top: 112px; right: 196px; max-height: calc(100% - 320px); } }
+.investigate__scope { font-size: var(--fs-12); color: var(--text-3); }
+.investigate__weather { font-size: var(--fs-13); color: var(--text-2); }
+.investigate__list { list-style: none; display: grid; gap: 2px; }
+
+@media (max-width: 720px) {
+  .earth-panel { left: 10px !important; right: 10px !important; width: auto !important; transform: none !important; }
+  .earth-panel--time, .earth-panel--orbit, .earth-panel--investigate { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 300px); max-height: 38vh; overflow-y: auto; }
+}

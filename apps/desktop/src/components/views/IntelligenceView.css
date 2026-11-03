@@ -14,3 +14,4 @@
 .intel-item__actions { display: flex; gap: var(--sp-1); margin: var(--sp-1) 0 0 calc(var(--sp-2) * -1); }
 .intel-empty { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-4); font-size: var(--fs-13); color: var(--text-3); }
 .intel-feed__source { padding: var(--sp-2) var(--sp-4); font-size: var(--fs-11); color: var(--text-3); border-top: 1px solid var(--line-1); }
+.intel-feeds-h { margin-bottom: var(--sp-3); font-family: var(--font-heading); font-size: var(--fs-16); font-weight: 600; color: var(--text-2); }

@@ -73,7 +73,9 @@ Recordings and scores stay in this window's memory when you move between screens
 - No user authentication on the local API: loopback bind, Host check, and CORS only.
 - Audit log and approvals are in memory: lost on restart, and pending approvals expire after 5 minutes.
 - No durable task store; a backend restart drops in-flight requests (reported as failures, never retried).
-- The model runs on the CPU here (no discrete GPU reported), so replies take about 10–55 s.
+- The model runs on the CPU here: Ollama's log shows `total_vram="0 B"` and drops the Intel UHD 770, so it never sees the RTX 4050. Plain replies take about 10–55 s; an Ask the Earth question takes 6–7 minutes, mostly reading the 13 tool definitions (about 1,900 prompt tokens at about 28 tokens/s) twice and writing the answer. Check the NVIDIA driver and the laptop's graphics mode (MUX or Optimus) before tuning anything else.
+- qwen2.5:7b lists every record in its answer even when told not to, and sometimes prints raw UTC timestamps. An instruction to keep it short was tried and made no difference, so it was removed. It also invented a record twice in live runs, so `unmatched_record_mentions` in `backend/friday/earth/actions.py` checks every "M x.x - place" in the answer against the records the tools returned and sends any misses in `unmatched_mentions`; the app warns above the answer. It covers earthquakes only.
+- The Vite dev server can restart without its `/api` proxy if many files change at once (a branch switch, say). Pulse then shows `Unexpected token '<'`. Restart the desktop dev server.
 - Dark theme only. The light-theme tokens exist as names, but no light palette was shipped.
 - Earth's keyless map is flat Esri satellite imagery. Photorealistic 3D needs a Cesium ion or Google key, and ships, active fires, and live traffic need their own keys.
 - Approve-path media keys were verified with a fake tool, not by pressing a real key.
@@ -105,7 +107,7 @@ The Earth screen is a locally changed copy of the MIT-licensed app at github.com
 ## Visual identity ("Orbit")
 
 - The planet fills the window on Earth. The navigation rail and status bar float over it (`App.css`), and the rail dims when Earth is quiet. The location indicator never dims, because tracking must stay visible.
-- The assistant core is `components/ui/Presence.tsx`: one W line with a different behaviour per state, CSS only. `executing` shows while an approved action runs, from the approval's own status. The backend doesn't stream, so a tool the model calls without needing approval shows as `thinking`.
+- The assistant core is `components/ui/Presence.tsx`: one W line with a different behaviour per state, CSS only. States come from real state in `AppProvider`: `retrieving` while a `get_*` tool runs (from `GET /chat/progress/{id}`), `executing` while any other tool or an approved action runs, and `awaiting` while an approval is pending with no request in flight.
 - Screens open out of the planet with a circular reveal (`view-from-planet`), and Earth arrives with a slight scale.
 
 ## 3D models
@@ -116,3 +118,16 @@ Only the selected object gets a model, which keeps the draw count bounded. Thous
 - Selected satellites use the model unless the catalogue name marks a rocket body or debris (`looksLikeSpacecraft` in `src/layers/trackedModels.js`), which keep a plain marker.
 - Selected ships use the model, facing the AIS heading, then course; with neither, the model faces north because the direction is unknown. This path needs an AISStream key to run on real data.
 - The selected aircraft's minimum on-screen size was raised from 40 to 96 px in `src/layers/flights/policy.js`. Military flights keep their own constant at 40.
+
+## Ask the Earth, Time, Orbit, Pulse
+
+One contract carries every change the assistant or a panel asks Earth to make. It is defined three times and each copy refuses anything outside it: `backend/friday/earth/actions.py` (pydantic, `extra="forbid"`), `apps/desktop/src/services/earthActions.ts`, and `readEarthAction` in the frame's `src/app/wednesdayEarth.js`.
+
+- Actions: `set_preset`, `focus`, `focus_user`, `return_global`, `set_layer`, `show_records` (groups `ask`, `time`, `compare`, `investigate`, `pulse`; at most 500 records), `select_record`, `select_aircraft` and `select_satellite` (a name matching `^[A-Za-z0-9 ()/.\-]+$`), and `clear_selection`. Record links must be https.
+- The model reaches Earth in two ways, both through `ConversationOrchestrator` and the existing `ToolRegistry`: the `control_earth` tool (permission `earth:view`), and records from world tools, which `actions_for_tool_result` maps to actions. At most 12 actions per turn are sent, in `ConversationResponse.earth_actions`. `control_earth` never reports success; its verification says Earth will confirm.
+- The app queues each reply's actions as a batch and sends it to the frame once Earth is ready (`wednesday:actions`). The frame runs them in order and answers `wednesday:action-results` with an ok or error for each one; the answer panel shows those results, not the model's claim.
+- **What happened here?** The frame's dial button starts pick mode (Escape cancels). A click draws a 250 km ring and sends `wednesday:investigate`; the app calls `GET /world/investigate`, which keeps only records whose own coordinates are inside the circle and lists every provider that couldn't be reached. The place name is only looked up when nearby-place search is allowed.
+- **Time.** `GET /world/history` reads USGS FDSN and NASA EONET for up to 92 days, never the future or before 1900. A failed archive goes in `missing`, never in the records as an empty result. Leaving Time mode removes its records from the globe.
+- **Orbit** turns on the satellite and flight layers, follows the ISS by name, and finds aircraft around your last known position, if there is one.
+- **Pulse** (`GET /world/briefing`) lists USGS M4.5+, GDACS and EONET records with source and time. `POST /world/briefing/summary` asks the local model for a summary, with the records wrapped as data, and the panel labels it as the model's reading.
+- Tests: `tests/unit/test_earth_actions.py`, `apps/desktop/test/earthActions.test.mjs`, and the frame's `wednesdayEarth.test.mjs` and `wednesdayRecords.test.mjs`.

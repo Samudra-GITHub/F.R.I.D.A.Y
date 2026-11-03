@@ -1,0 +1,23 @@
+.briefing { display: grid; gap: var(--sp-3); margin-bottom: var(--sp-6); padding: var(--sp-5); border: 1px solid var(--line-1); border-radius: var(--r-lg); background: var(--surface-1); }
+.briefing__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.briefing__head h2 { font-family: var(--font-heading); font-size: var(--fs-20); font-weight: 600; }
+.briefing__summary { padding: var(--sp-4); border-left: 2px solid var(--accent); background: var(--surface-0); border-radius: 0 var(--r-md) var(--r-md) 0; }
+.briefing__summary p:first-child { font-size: var(--fs-14); line-height: 1.6; }
+.briefing__label { margin-top: var(--sp-2); font-size: var(--fs-12); color: var(--text-3); }
+.briefing__loading { display: flex; align-items: center; gap: var(--sp-2); color: var(--text-2); font-size: var(--fs-13); }
+.briefing__items { list-style: none; display: grid; }
+.briefing__item { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: var(--sp-3); align-items: start; padding: var(--sp-3) 0; }
+.briefing__item + .briefing__item { border-top: 1px solid var(--line-1); }
+.briefing__kind { justify-self: start; margin-top: 2px; padding: 2px 8px; border-radius: var(--r-pill); font-size: var(--fs-11); font-weight: 600; background: var(--surface-3); color: var(--text-2); }
+.briefing__kind--earthquake { background: rgba(255, 138, 76, 0.14); color: var(--layer-quake); }
+.briefing__kind--disaster { background: rgba(255, 93, 143, 0.14); color: var(--layer-disaster); }
+.briefing__kind--event { background: rgba(255, 210, 94, 0.14); color: var(--layer-event); }
+.briefing__title { font-size: var(--fs-14); font-weight: 550; overflow-wrap: anywhere; }
+.briefing__meta { margin-top: 2px; font-size: var(--fs-12); color: var(--text-3); }
+.briefing__links { display: flex; gap: var(--sp-1); }
+.briefing__feeds { display: flex; flex-wrap: wrap; gap: var(--sp-4); font-size: var(--fs-11); color: var(--text-3); }
+.briefing__feed--bad { color: var(--warning); }
+@media (max-width: 720px) {
+  .briefing { padding: var(--sp-4); }
+  .briefing__item { grid-template-columns: 1fr; gap: var(--sp-1); }
+}
