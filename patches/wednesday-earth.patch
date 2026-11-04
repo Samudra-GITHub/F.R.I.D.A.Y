@@ -6153,6 +6153,73 @@ index 2635ecc..4b14ebf 100644
  });
  
  export { application };
+diff --git a/src/maps/sourceFactories.test.mjs b/src/maps/sourceFactories.test.mjs
+index 3f1edc7..4b1a890 100644
+--- a/src/maps/sourceFactories.test.mjs
++++ b/src/maps/sourceFactories.test.mjs
+@@ -327,3 +327,12 @@ test('unreachable keyless terrain falls back to flat terrain marked as a fallbac
+   assert.ok(result.provider instanceof Cesium.EllipsoidTerrainProvider);
+   assert.equal(result.fallback, true);
+ });
++
++test('keyless terrain that never answers falls back instead of holding the scene', async (t) => {
++  // A host whose DNS lookup times out leaves Cesium's request pending forever.
++  t.mock.method(Cesium.CesiumTerrainProvider, 'fromUrl', () => new Promise(() => {}));
++  t.mock.method(console, 'warn', () => {});
++  const result = await createKeylessTerrain({ timeoutMs: 20 });
++  assert.ok(result.provider instanceof Cesium.EllipsoidTerrainProvider);
++  assert.equal(result.fallback, true);
++});
+diff --git a/src/maps/terrain.js b/src/maps/terrain.js
+index d2f2147..287249e 100644
+--- a/src/maps/terrain.js
++++ b/src/maps/terrain.js
+@@ -47,12 +47,33 @@ export function createKeylessTerrainResource(
+   });
+ }
+ 
+-export async function createKeylessTerrain() {
++/**
++ * How long the first keyless terrain load may take. Cesium's requests have no
++ * timeout, so an unresolvable or silent host would otherwise hold the whole
++ * scene on its loading screen; flat terrain shows instead and the map
++ * controller retries the real terrain behind it.
++ */
++export const KEYLESS_TERRAIN_TIMEOUT_MS = 10_000;
++
++export async function createKeylessTerrain({
++  timeoutMs = KEYLESS_TERRAIN_TIMEOUT_MS,
++} = {}) {
++  let timer;
+   try {
++    const deadline = new Promise((_, reject) => {
++      timer = setTimeout(
++        () =>
++          reject(
++            new Error(`Re:Earth terrain did not answer within ${timeoutMs} ms`),
++          ),
++        timeoutMs,
++      );
++    });
+     return {
+-      provider: await Cesium.CesiumTerrainProvider.fromUrl(
+-        createKeylessTerrainResource(),
+-      ),
++      provider: await Promise.race([
++        Cesium.CesiumTerrainProvider.fromUrl(createKeylessTerrainResource()),
++        deadline,
++      ]),
+     };
+   } catch (error) {
+     console.warn(
+@@ -60,5 +81,7 @@ export async function createKeylessTerrain() {
+       error,
+     );
+     return { provider: new Cesium.EllipsoidTerrainProvider(), fallback: true };
++  } finally {
++    clearTimeout(timer);
+   }
+ }
 diff --git a/src/panelStackLayout.test.mjs b/src/panelStackLayout.test.mjs
 index a13f5c0..19c1b52 100644
 --- a/src/panelStackLayout.test.mjs
