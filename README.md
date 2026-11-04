@@ -4,6 +4,10 @@
 
 <br/>
 
+<img src="docs/assets/acronym.svg" alt="Watchful Earth-Data Navigator, Entirely Self-hosted Desktop Assistant for You" width="100%"/>
+
+<br/><br/>
+
 **A personal AI assistant that runs on your own computer, with a living Earth at its centre.**
 
 Local language model · Real public data · Nothing happens without your permission
@@ -17,25 +21,42 @@ Local language model · Real public data · Nothing happens without your permiss
 [![Ollama](https://img.shields.io/badge/Ollama-qwen2.5:7b-1E1E2E?style=flat-square&logo=ollama&logoColor=white)](https://ollama.com/)
 [![Windows 11](https://img.shields.io/badge/Windows-11-0078D4?style=flat-square&logo=windows11&logoColor=white)](https://www.microsoft.com/windows)
 
-**[Earth](#a-living-earth)** · **[The core](#the-intelligence-core)** · **[Location](#location-you-control)** · **[Privacy](#private-by-design)** · **[Run it](#run-it)** · **[Status](#where-it-stands)**
+**[Earth](#-a-living-earth)** · **[Ask](#-ask-the-earth)** · **[The core](#-the-intelligence-core)** · **[Location](#-location-you-control)** · **[Privacy](#-private-by-design)** · **[Run it](#-run-it)** · **[Status](#-where-it-stands)**
 
 </div>
 
 ---
 
-## What it is
+## ✨ What it is
 
 W.E.D.N.E.S.D.A.Y. is a desktop assistant for Windows 11. You talk to it, or type, and it answers with a language model running on your own machine through [Ollama](https://ollama.com/). It can use tools, such as reading the time, listing your workspace, checking earthquakes or the weather, and finding nearby places, but each one is checked by a capability broker, and anything with consequences waits for your approval.
 
 Around it sits **World**: a full 3D globe showing live public data. It opens on the whole planet, lit by the real sun, and moves to wherever you're exploring. You can ask it questions in plain language, step back through the past month, follow what's in orbit, and point at any place to ask what happened there.
 
-| Screen | What it does |
-|---|---|
-| **Mind** | The assistant: conversation, voice, approvals. |
-| **World** | The living Earth, with three modes: **Live**, **Time** (history playback and comparison) and **Orbit** (satellites, aircraft, ships). |
-| **Pulse** | A briefing of significant records, each with its source and time, which the local model can summarize on request. |
+<table>
+<tr>
+<td width="33%" valign="top">
 
-## A living Earth
+### 🧠 Mind
+The assistant: conversation, voice and approvals, all on a local model.
+
+</td>
+<td width="33%" valign="top">
+
+### 🌍 World
+The living Earth, in three modes: **Live**, **Time** (history playback and comparison) and **Orbit** (satellites, aircraft, ships).
+
+</td>
+<td width="33%" valign="top">
+
+### 📡 Pulse
+A briefing of significant records, each with its source and time, which the local model can summarize on request.
+
+</td>
+</tr>
+</table>
+
+## 🌐 A living Earth
 
 - **The whole planet first.** Earth always opens far enough out to see the entire sphere, with day and night where they really are. Left alone, it slowly turns, and the controls fade so the planet has the stage. Move the mouse and they return.
 - **An orbit dial for altitude.** An arc beside the planet carries five stops: Global, Continent, Regional, Local and Street. Its needle follows the camera's true height as you zoom.
@@ -56,7 +77,7 @@ Live aircraft, about 800 tracked satellites, the past day's earthquakes from USG
 
 </details>
 
-## Ask the Earth
+## 💬 Ask the Earth
 
 Type or say a question on the World screen, such as *"Show earthquakes above magnitude 4 today"*. The local model picks a tool, and the records it fetches go to the globe as a small, typed request (show these records, turn on this layer, focus here).
 
@@ -69,7 +90,7 @@ Type or say a question on the World screen, such as *"Show earthquakes above mag
 
 **Time.** Pick a period of up to 92 days and a minimum magnitude, then play it back day by day or compare it with another period. Records come from the USGS earthquake catalogue and NASA EONET archives; a missing archive is listed as missing, never shown as a quiet month.
 
-## The intelligence core
+## ⚡ The intelligence core
 
 The assistant's identity is a single line, the **W**, under the curve of the planet. Each state is a different behaviour of that one line, so you can read it at a glance, even without colour.
 
@@ -89,7 +110,7 @@ The assistant's identity is a single line, the **W**, under the curve of the pla
 | **Reviewing** | A transcript is waiting for you to send or discard it. |
 | **Error** | Something needs your attention. Nothing moves. |
 
-## Location you control
+## 📍 Location you control
 
 | Mode | What happens |
 |---|---|
@@ -99,7 +120,7 @@ The assistant's identity is a single line, the **W**, under the curve of the pla
 
 While tracking runs, the top bar always shows it, with **Pause** and **Stop** one click away. Polling slows while you stay put, but never so far that the position goes stale. Only your latest position is kept, on your own machine; there is no location history.
 
-## Private by design
+## 🔒 Private by design
 
 <div align="center">
 <img src="docs/assets/architecture.svg" alt="Diagram: the desktop shell, local core, Ollama, Windows location and speech, and Earth run on this computer; public providers are outside" width="100%"/>
@@ -114,7 +135,7 @@ While tracking runs, the top bar always shows it, with **Pause** and **Stop** on
 - **The core listens only to this computer.** The backend binds to `127.0.0.1` and rejects requests addressed to any other host.
 - **The exception is Earth.** Earth's map images and live layers come straight from their public providers, so those providers see which area you're viewing.
 
-## Run it
+## 🚀 Run it
 
 **You need:** Windows 11, Python 3.12, Node.js 20 or newer, Git, and [Ollama](https://ollama.com/) with `qwen2.5:7b` pulled.
 
@@ -182,7 +203,7 @@ At the last full run: backend 232 passed; desktop 45 passed, with a clean type c
 
 </details>
 
-## Where it stands
+## 🧭 Where it stands
 
 **Working and checked in the running app:**
 - the whole-planet opening, orbit dial, Focus on me, and focus mode for real aircraft, satellites, and earthquakes
@@ -201,7 +222,7 @@ At the last full run: backend 232 passed; desktop 45 passed, with a clean type c
 
 More detail is in [docs/overhaul](docs/overhaul).
 
-## Acknowledgements
+## 🙏 Acknowledgements
 
 - **Earth:** builds on [gods-eye-view](https://github.com/bilawalsidhu/gods-eye-view) by Bilawal Sidhu (MIT) and [CesiumJS](https://cesium.com/platform/cesiumjs/).
 - **Aircraft models:** used under CC BY 4.0, credited in that project's `public/models/README.md`. The satellite and ship models are original to this project.
