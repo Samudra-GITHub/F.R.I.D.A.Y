@@ -140,8 +140,8 @@ While tracking runs, the top bar always shows it, with **Pause** and **Stop** on
 **You need:** Windows 11, Python 3.12, Node.js 20 or newer, Git, and [Ollama](https://ollama.com/) with `qwen2.5:7b` pulled.
 
 ```powershell
-git clone https://github.com/Samudra-GITHub/F.R.I.D.A.Y.git
-cd F.R.I.D.A.Y.
+git clone https://github.com/Samudra-GITHub/W.E.D.N.E.S.D.A.Y..git
+cd W.E.D.N.E.S.D.A.Y.
 python -m venv .venv
 .venv\Scripts\pip install -e .[dev]
 npm --prefix apps/desktop install
